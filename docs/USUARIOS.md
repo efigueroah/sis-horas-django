@@ -1,6 +1,6 @@
-# 👥 Gestión de Usuarios
+# Gestión de Usuarios
 
-## 🔐 Crear Usuario Administrador
+## Crear Usuario Administrador
 
 ### Desde Línea de Comandos
 ```bash
@@ -21,10 +21,10 @@ Se solicitará:
 2. Ir a **Users** → **Add User**
 3. Completar datos básicos
 4. En **Permissions**, marcar:
-   - ✅ Staff status
-   - ✅ Superuser status
+   - Staff status
+   - Superuser status
 
-## 👤 Crear Usuarios Regulares
+## Crear Usuarios Regulares
 
 ### Opción 1: Panel Admin (Recomendado)
 1. Acceder como admin a http://localhost:8000/admin/
@@ -36,8 +36,8 @@ Se solicitará:
 5. Completar información adicional:
    - First name / Last name
    - Email
-   - **Staff status**: ❌ (usuarios regulares)
-   - **Active**: ✅
+   - **Staff status**: No (usuarios regulares)
+   - **Active**: Sí
 
 ### Opción 2: Desde Django Shell
 ```bash
@@ -67,7 +67,7 @@ staff_user = User.objects.create_user(
 )
 ```
 
-## ⚙️ Configuración de Perfiles
+## Configuración de Perfiles
 
 Cada usuario tiene un **Perfil Personal** que se crea automáticamente:
 
@@ -81,25 +81,25 @@ Cada usuario tiene un **Perfil Personal** que se crea automáticamente:
 1. **Usuario Regular**: `/configuracion/`
 2. **Admin**: `/admin/` → **Authentication** → **Perfil Personal**
 
-## 🔒 Niveles de Acceso
+## Niveles de Acceso
 
 ### Superusuario (Admin)
-- ✅ Acceso completo al sistema
-- ✅ Panel de administración
-- ✅ Gestión de usuarios
-- ✅ Configuración del sistema
-- ✅ Todas las funcionalidades
+- Acceso completo al sistema
+- Panel de administración
+- Gestión de usuarios
+- Configuración del sistema
+- Todas las funcionalidades
 
 ### Usuario Regular
-- ✅ Dashboard personal
-- ✅ Gestión de horas propias
-- ✅ Gestión de proyectos propios
-- ✅ Exportación de reportes
-- ✅ Configuración personal
-- ❌ Panel admin
-- ❌ Gestión de otros usuarios
+- Dashboard personal
+- Gestión de horas propias
+- Gestión de proyectos propios
+- Exportación de reportes
+- Configuración personal
+- Sin acceso al panel admin
+- Sin gestión de otros usuarios
 
-## 🔄 Gestión de Contraseñas
+## Gestión de Contraseñas
 
 ### Cambiar Contraseña (Admin)
 ```bash
@@ -121,7 +121,7 @@ user.save()
 3. Ingresar nueva contraseña dos veces
 4. Guardar
 
-## 📊 Datos de Usuario
+## Datos de Usuario
 
 ### Información Automática
 - **Períodos**: Se crean automáticamente
@@ -134,9 +134,9 @@ Para transferir datos entre usuarios, usar Django Admin:
 2. **Registros de Horas**: Cambiar campo "Usuario"
 3. **Períodos**: Cambiar campo "Usuario"
 
-## 🚫 Eliminar Usuarios
+## Eliminar Usuarios
 
-### ⚠️ PRECAUCIÓN
+### PRECAUCIÓN
 Eliminar un usuario borra **TODOS** sus datos:
 - Proyectos
 - Registros de horas

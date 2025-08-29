@@ -1,6 +1,6 @@
-# 📋 Guía de Instalación - Sistema de Gestión de Horas
+# Guía de Instalación - Sistema de Gestión de Horas
 
-## 🔧 Requisitos Previos
+## Requisitos Previos
 
 ### Software Necesario
 - **Python 3.8+** - [Descargar Python](https://www.python.org/downloads/)
@@ -13,7 +13,7 @@ python --version  # Debe mostrar Python 3.8 o superior
 pip --version     # Debe mostrar la versión de pip
 ```
 
-## 🚀 Instalación Paso a Paso
+## Instalación Paso a Paso
 
 ### 1. Clonar el Repositorio
 ```bash
@@ -63,7 +63,7 @@ python run_server.py
 python manage.py runserver
 ```
 
-## 🌐 Acceso al Sistema
+## Acceso al Sistema
 
 - **URL Principal**: http://localhost:8000
 - **Panel Admin**: http://localhost:8000/admin/
@@ -75,7 +75,7 @@ python manage.py runserver
 | `demo1` | `demo123` | Usuario |
 | `demo2` | `demo123` | Usuario |
 
-## 🔧 Configuración Adicional
+## Configuración Adicional
 
 ### Variables de Entorno (Opcional)
 Crear archivo `.env` en la raíz del proyecto:
@@ -86,9 +86,9 @@ DATABASE_URL=sqlite:///db.sqlite3
 ```
 
 ### Configuración de Producción
-Para despliegue en producción, consultar [DESPLIEGUE.md](DESPLIEGUE.md)
+Para despliegue en producción, consultar [CONFIGURACION.md](CONFIGURACION.md)
 
-## ❗ Solución de Problemas
+## Solución de Problemas
 
 ### Error: "No module named 'django'"
 ```bash
@@ -113,7 +113,7 @@ rm db.sqlite3
 python manage.py migrate
 ```
 
-## 📞 Soporte
+## Soporte
 
 Si encuentras problemas durante la instalación:
 1. Revisa los [Issues](https://github.com/efigueroah/sis-horas-django/issues)

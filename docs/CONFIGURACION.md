@@ -1,6 +1,6 @@
-# ⚙️ Configuración del Sistema
+# Configuración del Sistema
 
-## 🎛️ Configuración General
+## Configuración General
 
 ### Acceso a Configuración
 - **URL**: `/configuracion/`
@@ -21,7 +21,7 @@
 - **Validar Feriados**: Activar/desactivar
 - **Nombre del Sistema**: Personalización
 
-## 📊 Configuración de Períodos
+## Configuración de Períodos
 
 ### Crear Período
 1. Ir a **Períodos** → **Crear Nuevo**
@@ -36,7 +36,7 @@
 - El período activo determina dónde se registran las horas
 - Cambiar período activo desde la lista de períodos
 
-## 🎯 Configuración de Proyectos
+## Configuración de Proyectos
 
 ### Crear Proyecto
 1. **Proyectos** → **Crear Nuevo**
@@ -50,7 +50,7 @@
 - **Activo**: Disponible para registro de horas
 - **Inactivo**: No aparece en formularios (datos conservados)
 
-## 📅 Configuración de Feriados
+## Configuración de Feriados
 
 ### Gestión de Feriados
 - **URL**: `/feriados/`
@@ -67,7 +67,7 @@
 ### Feriados Automáticos
 El sistema incluye feriados nacionales argentinos 2025 por defecto.
 
-## 🔧 Configuración Avanzada
+## Configuración Avanzada
 
 ### Variables de Entorno
 Crear archivo `.env` en la raíz:
@@ -141,7 +141,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 ```
 
-## 📁 Configuración de Archivos
+## Configuración de Archivos
 
 ### Archivos Estáticos
 ```python
@@ -159,7 +159,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 ```
 
-## 🔄 Comandos de Configuración
+## Comandos de Configuración
 
 ### Resetear Configuración
 ```bash
@@ -186,7 +186,7 @@ python manage.py loaddata backup.json
 python manage.py collectstatic
 ```
 
-## 🎨 Personalización
+## Personalización
 
 ### Cambiar Nombre del Sistema
 1. **Configuración** → **Configuración del Sistema**
