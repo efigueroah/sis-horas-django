@@ -73,3 +73,6 @@ coverage.xml
 # Temporary files
 *.tmp
 *.temp
+
+# Checkpoints
+.checkpoints/
