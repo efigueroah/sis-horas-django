@@ -1,0 +1,175 @@
+<form method="post" id="configForm">
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-export me-2"></i>
+                        Configuración de Exportación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="formato_exportacion" class="form-label">
+                            <i class="fas fa-file-alt me-1"></i>
+                            Formato de Exportación
+                        </label>
+                        <select class="form-select" id="formato_exportacion" name="formato_exportacion">
+                            <option value="csv">CSV (Comma Separated Values)</option>
+                            <option value="xlsx">Excel (XLSX)</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="separador_csv" class="form-label">
+                            <i class="fas fa-grip-lines-vertical me-1"></i>
+                            Separador CSV
+                        </label>
+                        <select class="form-select" id="separador_csv" name="separador_csv">
+                            <option value=",">Coma (,)</option>
+                            <option value=";">Punto y coma (;)</option>
+                            <option value="|">Pipe (|)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="separador_decimal" class="form-label">
+                            <i class="fas fa-calculator me-1"></i>
+                            Separador Decimal
+                        </label>
+                        <select class="form-select" id="separador_decimal" name="separador_decimal">
+                            <option value=".">Punto (.) - Formato internacional</option>
+                            <option value=",">Coma (,) - Formato europeo/español</option>
+                        </select>
+                        <div class="form-text">
+                            Para Excel en español, selecciona "Coma (,)"
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="incluir_encabezados" name="incluir_encabezados" checked>
+                            <label class="form-check-label" for="incluir_encabezados">
+                                <i class="fas fa-heading me-1"></i>
+                                Incluir encabezados en exportación
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Filtros por Defecto
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" 
+                                   id="solo_activos" name="solo_activos" checked>
+                            <label class="form-check-label" for="solo_activos">
+                                <i class="fas fa-check-circle me-1"></i>
+                                Solo incluir proyectos activos
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-columns me-2"></i>
+                        Columnas a Incluir
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="col_fecha" name="columnas" value="fecha" checked>
+                                <label class="form-check-label" for="col_fecha">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Fecha
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="col_proyecto" name="columnas" value="proyecto" checked>
+                                <label class="form-check-label" for="col_proyecto">
+                                    <i class="fas fa-project-diagram me-1"></i>
+                                    Proyecto
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="col_horas" name="columnas" value="horas" checked>
+                                <label class="form-check-label" for="col_horas">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Horas
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="col_tipo_tarea" name="columnas" value="tipo_tarea">
+                                <label class="form-check-label" for="col_tipo_tarea">
+                                    <i class="fas fa-tasks me-1"></i>
+                                    Tipo de Tarea
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="col_descripcion" name="columnas" value="descripcion">
+                                <label class="form-check-label" for="col_descripcion">
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    Descripción
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="col_cliente" name="columnas" value="cliente">
+                                <label class="form-check-label" for="col_cliente">
+                                    <i class="fas fa-building me-1"></i>
+                                    Cliente
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <button type="submit" name="save_reportes" class="btn btn-success">
+                <i class="fas fa-save me-1"></i>
+                Guardar Configuración de Reportes
+            </button>
+        </div>
+    </div>
+</form>

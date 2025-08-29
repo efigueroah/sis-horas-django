@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Registro - {{ object.fecha }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmar Eliminación
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>¡Atención!</strong> Esta acción no se puede deshacer.
+                    </div>
+                    
+                    <p class="lead">¿Está seguro de que desea eliminar el siguiente registro de horas?</p>
+                    
+                    <div class="card border-secondary">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                Detalles del Registro
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Fecha:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-primary fs-6">
+                                        {{ object.fecha|date:"l, d \d\e F \d\e Y" }}
+                                    </span>
+                                </dd>
+                                
+                                <dt class="col-sm-3">Proyecto:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge fs-6" style="background-color: {{ object.proyecto.color_hex }}; color: white;">
+                                        {{ object.proyecto.nombre }}
+                                    </span>
+                                    {% if object.proyecto.cliente %}
+                                        <small class="text-muted">({{ object.proyecto.cliente }})</small>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-3">Horas:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-success fs-6">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ object.horas }} horas
+                                    </span>
+                                </dd>
+                                
+                                <dt class="col-sm-3">Tipo de Tarea:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-{{ object.tipo_tarea_color }} fs-6">
+                                        <i class="{{ object.tipo_tarea_icon }} me-1"></i>
+                                        {{ object.get_tipo_tarea_display }}
+                                    </span>
+                                </dd>
+                                
+                                {% if object.descripcion %}
+                                <dt class="col-sm-3">Descripción:</dt>
+                                <dd class="col-sm-9">
+                                    <div class="border rounded p-2 bg-light">
+                                        {{ object.descripcion|linebreaks }}
+                                    </div>
+                                </dd>
+                                {% endif %}
+                                
+                                <dt class="col-sm-3">Período:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-info fs-6">
+                                        {{ object.periodo.nombre }}
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6 class="text-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            Consecuencias de la eliminación:
+                        </h6>
+                        <ul class="text-muted">
+                            <li>Se eliminará permanentemente este registro de {{ object.horas }} horas</li>
+                            <li>Los totales de horas del proyecto se actualizarán automáticamente</li>
+                            <li>Los reportes ya generados no se verán afectados</li>
+                            <li>Esta acción no se puede deshacer</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{% url 'horas:hora_detail' object.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Cancelar
+                    </a>
+                    <div>
+                        <a href="{% url 'horas:hora_list' %}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-list me-1"></i>
+                            Volver a la Lista
+                        </a>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>
+                                Sí, Eliminar Registro
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation on form submit
+    const deleteForm = document.querySelector('form[method="post"]');
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', function(e) {
+            const confirmed = confirm(
+                '¿Está completamente seguro de eliminar este registro?\n\n' +
+                'Esta acción es irreversible y eliminará:\n' +
+                '• El registro de {{ object.horas }} horas del {{ object.fecha|date:"d/m/Y" }}\n' +
+                '• Toda la información asociada\n\n' +
+                'Escriba "ELIMINAR" para confirmar:'
+            );
+            
+            if (!confirmed) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Show loading state
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Eliminando...';
+            submitBtn.disabled = true;
+        });
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // ESC to cancel
+        if (e.key === 'Escape') {
+            window.location.href = '{% url "horas:hora_detail" object.pk %}';
+        }
+        
+        // Ctrl+Enter to confirm (with additional confirmation)
+        if (e.ctrlKey && e.key === 'Enter') {
+            const confirmed = confirm('¿Confirmar eliminación con Ctrl+Enter?');
+            if (confirmed) {
+                deleteForm.submit();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

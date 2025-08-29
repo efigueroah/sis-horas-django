@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Sistema de Gestión de Horas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .feriado-card {
+        transition: transform 0.2s;
+    }
+    .feriado-card:hover {
+        transform: translateY(-2px);
+    }
+    .fecha-badge {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+    .stats-card {
+        border-left: 4px solid #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-calendar-times text-danger me-2"></i>
+                        {{ title }}
+                    </h1>
+                    <p class="text-muted mb-0">Gestiona los días feriados de tu calendario</p>
+                </div>
+                <div>
+                    <a href="{% url 'core:feriado_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Nuevo Feriado
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">Total de Feriados</h5>
+                            <h2 class="mb-0 text-danger">{{ total_feriados }}</h2>
+                        </div>
+                        <div class="text-danger">
+                            <i class="fas fa-calendar-times fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card stats-card" style="border-left-color: #28a745;">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">Este Año</h5>
+                            <h2 class="mb-0 text-success">{{ feriados_este_año }}</h2>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-calendar-check fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Feriados -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Lista de Días Feriados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if feriados %}
+                        <div class="row">
+                            {% for feriado in feriados %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card feriado-card h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="badge bg-danger fecha-badge">
+                                                {{ feriado.fecha|date:"d M Y" }}
+                                            </span>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                                        type="button" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li>
+                                                        <a class="dropdown-item" href="{% url 'core:feriado_detail' feriado.pk %}">
+                                                            <i class="fas fa-eye me-2"></i>Ver Detalles
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="{% url 'core:feriado_update' feriado.pk %}">
+                                                            <i class="fas fa-edit me-2"></i>Editar
+                                                        </a>
+                                                    </li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li>
+                                                        <button class="dropdown-item text-danger" 
+                                                                onclick="eliminarFeriado({{ feriado.pk }}, '{{ feriado.nombre }}')">
+                                                            <i class="fas fa-trash me-2"></i>Eliminar
+                                                        </button>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <h6 class="card-title">{{ feriado.nombre }}</h6>
+                                        <p class="card-text text-muted small">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {{ feriado.fecha|date:"l, d \d\e F \d\e Y" }}
+                                        </p>
+                                        {% if feriado.descripcion %}
+                                        <p class="card-text small">{{ feriado.descripcion|truncatewords:10 }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Paginación -->
+                        {% if is_paginated %}
+                        <nav aria-label="Paginación de feriados">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1">Primera</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                                    </li>
+                                {% endif %}
+
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                            <h4>No hay días feriados registrados</h4>
+                            <p class="text-muted">Comienza agregando tu primer día feriado.</p>
+                            <a href="{% url 'core:feriado_create' %}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Crear Primer Feriado
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar el día feriado <strong id="feriadoNombre"></strong>?</p>
+                <p class="text-muted small">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function eliminarFeriado(feriadoId, feriadoNombre) {
+    document.getElementById('feriadoNombre').textContent = feriadoNombre;
+    document.getElementById('deleteForm').action = `{% url 'core:feriado_delete' 0 %}`.replace('0', feriadoId);
+    
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

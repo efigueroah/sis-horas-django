@@ -1,0 +1,195 @@
+/**
+ * Estilos para el widget de horas personalizado
+ */
+
+.hours-input {
+    position: relative;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    text-align: center;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border: 2px solid #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.hours-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    background: white;
+}
+
+.hours-input.is-valid {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #d4edda, #ffffff);
+}
+
+.hours-input.is-invalid {
+    border-color: #dc3545;
+    background: linear-gradient(135deg, #f8d7da, #ffffff);
+}
+
+/* Contenedor del campo de horas */
+.hours-field-container {
+    position: relative;
+}
+
+.hours-field-container::after {
+    content: '⏱️';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 1.2em;
+    opacity: 0.6;
+}
+
+/* Sugerencias de formato */
+.hours-format-hint {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.format-example {
+    padding: 0.125rem 0.25rem;
+    background: #e9ecef;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.format-example:hover {
+    background: #007bff;
+    color: white;
+}
+
+/* Indicador de conversión */
+.hours-conversion {
+    margin-top: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: #e3f2fd;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    color: #1565c0;
+    display: none;
+}
+
+.hours-conversion.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Validación visual */
+.hours-input[data-format="decimal"]::before {
+    content: '🔢';
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+}
+
+.hours-input[data-format="time"]::before {
+    content: '🕐';
+    position: absolute;
+    left: -25px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .hours-format-hint {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .format-example {
+        text-align: center;
+    }
+}
+
+/* Estados de carga */
+.hours-input.loading {
+    background: linear-gradient(90deg, #f8f9fa, #e9ecef, #f8f9fa);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Tooltip personalizado */
+.hours-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.hours-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+.hours-field-container:hover .hours-tooltip {
+    opacity: 1;
+}
+
+/* Ejemplos rápidos */
+.quick-hours-examples {
+    display: flex;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.quick-example {
+    padding: 0.125rem 0.375rem;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.quick-example:hover {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.quick-example.decimal {
+    color: #007bff;
+}
+
+.quick-example.time {
+    color: #28a745;
+}

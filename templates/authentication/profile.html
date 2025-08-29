@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Perfil - Sistema de Gestión de Horas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-user-cog me-2"></i>Mi Perfil</h1>
+            <a href="{% url 'authentication:profile_edit' %}" class="btn btn-primary">
+                <i class="fas fa-edit me-1"></i>Editar Perfil
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Información Personal</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Usuario</label>
+                            <p class="fw-bold">{{ user.username }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Email</label>
+                            <p class="fw-bold">{{ user.email|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Nombre</label>
+                            <p class="fw-bold">{{ user.first_name|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Apellido</label>
+                            <p class="fw-bold">{{ user.last_name|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Nombre Completo</label>
+                    <p class="fw-bold">{{ user_profile.display_name }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Configuración</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted">Horas Máximas por Día</label>
+                    <p class="fw-bold">{{ user_profile.horas_max_dia }}h</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Zona Horaria</label>
+                    <p class="fw-bold">{{ user_profile.timezone }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Formato de Fecha</label>
+                    <p class="fw-bold">{{ user_profile.get_formato_fecha_display }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-muted">Tema</label>
+                    <p class="fw-bold">{{ user_profile.get_tema_display }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0">Acciones</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'authentication:profile_edit' %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Editar Perfil
+                    </a>
+                    <a href="{% url 'authentication:password_change' %}" class="btn btn-outline-warning">
+                        <i class="fas fa-key me-2"></i>Cambiar Contraseña
+                    </a>
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Información de Cuenta</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Fecha de Registro</label>
+                            <p class="fw-bold">{{ user.date_joined|date:"d/m/Y H:i" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Último Acceso</label>
+                            <p class="fw-bold">{{ user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Estado</label>
+                            {% if user.is_active %}
+                            <p class="fw-bold text-success">
+                                <i class="fas fa-check-circle me-1"></i>Activo
+                            </p>
+                            {% else %}
+                            <p class="fw-bold text-danger">
+                                <i class="fas fa-times-circle me-1"></i>Inactivo
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

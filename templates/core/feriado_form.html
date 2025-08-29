@@ -1,0 +1,223 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Sistema de Gestión de Horas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-calendar-times text-danger me-2"></i>
+                        {{ title }}
+                    </h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'core:dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'core:feriado_list' %}">Días Feriados</a>
+                            </li>
+                            <li class="breadcrumb-item active">{{ action }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'core:feriado_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card form-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if action == 'Crear' %}plus{% else %}edit{% endif %} me-2"></i>
+                        {{ action }} Día Feriado
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Errores generales del formulario -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- Nombre del Feriado -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nombre.id_for_label }}" class="form-label required-field">
+                                    <i class="fas fa-tag me-1"></i>Nombre del Feriado
+                                </label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.nombre.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Nombre descriptivo del día feriado
+                                </div>
+                            </div>
+
+                            <!-- Fecha -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fecha.id_for_label }}" class="form-label required-field">
+                                    <i class="fas fa-calendar me-1"></i>Fecha
+                                </label>
+                                {{ form.fecha }}
+                                {% if form.fecha.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.fecha.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Fecha del día feriado
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="mb-3">
+                            <label for="{{ form.descripcion.id_for_label }}" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>Descripción
+                            </label>
+                            {{ form.descripcion }}
+                            {% if form.descripcion.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.descripcion.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Descripción opcional del día feriado (máximo 500 caracteres)
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a href="{% url 'core:feriado_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                            </div>
+                            <div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-{% if action == 'Crear' %}plus{% else %}save{% endif %} me-1"></i>
+                                    {{ action }} Feriado
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información Importante
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar-check text-success me-2"></i>Días Feriados</h6>
+                            <ul class="list-unstyled small text-muted">
+                                <li>• Los días feriados aparecerán marcados en el calendario</li>
+                                <li>• No se pueden registrar horas en días feriados</li>
+                                <li>• Los feriados se aplican automáticamente a todos los períodos</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb text-warning me-2"></i>Consejos</h6>
+                            <ul class="list-unstyled small text-muted">
+                                <li>• Usa nombres descriptivos para identificar fácilmente los feriados</li>
+                                <li>• Agrega una descripción para recordar el motivo del feriado</li>
+                                <li>• Revisa el calendario después de crear el feriado</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Agregar clases CSS a los campos del formulario
+    const nombreField = document.querySelector('input[name="nombre"]');
+    const fechaField = document.querySelector('input[name="fecha"]');
+    const descripcionField = document.querySelector('textarea[name="descripcion"]');
+    
+    if (nombreField) {
+        nombreField.className = 'form-control';
+        nombreField.placeholder = 'Ej: Día de la Independencia';
+        nombreField.required = true;
+    }
+    
+    if (fechaField) {
+        fechaField.className = 'form-control';
+        fechaField.type = 'date';
+        fechaField.required = true;
+    }
+    
+    if (descripcionField) {
+        descripcionField.className = 'form-control';
+        descripcionField.rows = 3;
+        descripcionField.placeholder = 'Descripción opcional del feriado...';
+    }
+    
+    // Validación en tiempo real
+    if (nombreField) {
+        nombreField.addEventListener('blur', function() {
+            if (this.value.trim().length < 3) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    }
+    
+    if (fechaField) {
+        fechaField.addEventListener('change', function() {
+            if (this.value) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configuración de Reportes{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-cog text-primary me-2"></i>
+                        Configuración de Reportes
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="configForm">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-file-export me-2"></i>
+                                            Configuración de Exportación
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="formato_exportacion" class="form-label">
+                                                <i class="fas fa-file-alt me-1"></i>
+                                                Formato de Exportación
+                                            </label>
+                                            <select class="form-select" id="formato_exportacion" name="formato_exportacion">
+                                                <option value="csv" {% if form.formato_exportacion.value == 'csv' %}selected{% endif %}>
+                                                    CSV (Comma Separated Values)
+                                                </option>
+                                                <option value="xlsx" {% if form.formato_exportacion.value == 'xlsx' %}selected{% endif %}>
+                                                    Excel (XLSX)
+                                                </option>
+                                                <option value="pdf" {% if form.formato_exportacion.value == 'pdf' %}selected{% endif %}>
+                                                    PDF
+                                                </option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="separador_csv" class="form-label">
+                                                <i class="fas fa-grip-lines-vertical me-1"></i>
+                                                Separador CSV
+                                            </label>
+                                            <select class="form-select" id="separador_csv" name="separador_csv">
+                                                <option value="," {% if form.separador_csv.value == ',' %}selected{% endif %}>
+                                                    Coma (,)
+                                                </option>
+                                                <option value=";" {% if form.separador_csv.value == ';' %}selected{% endif %}>
+                                                    Punto y coma (;)
+                                                </option>
+                                                <option value="|" {% if form.separador_csv.value == '|' %}selected{% endif %}>
+                                                    Pipe (|)
+                                                </option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="separador_decimal" class="form-label">
+                                                <i class="fas fa-calculator me-1"></i>
+                                                Separador Decimal
+                                            </label>
+                                            <select class="form-select" id="separador_decimal" name="separador_decimal">
+                                                <option value="." {% if form.separador_decimal.value == '.' %}selected{% endif %}>
+                                                    Punto (.) - Formato internacional
+                                                </option>
+                                                <option value="," {% if form.separador_decimal.value == ',' %}selected{% endif %}>
+                                                    Coma (,) - Formato europeo/español
+                                                </option>
+                                            </select>
+                                            <div class="form-text">
+                                                Para Excel en español, selecciona "Coma (,)"
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="incluir_encabezados" name="incluir_encabezados"
+                                                       {% if form.incluir_encabezados.value %}checked{% endif %}>
+                                                <label class="form-check-label" for="incluir_encabezados">
+                                                    <i class="fas fa-heading me-1"></i>
+                                                    Incluir encabezados en exportación
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-filter me-2"></i>
+                                            Filtros por Defecto
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="periodo_defecto" class="form-label">
+                                                <i class="fas fa-calendar me-1"></i>
+                                                Período por Defecto
+                                            </label>
+                                            <select class="form-select" id="periodo_defecto" name="periodo_defecto">
+                                                <option value="">Seleccionar período...</option>
+                                                {% for periodo in periodos %}
+                                                <option value="{{ periodo.pk }}" 
+                                                        {% if form.periodo_defecto.value == periodo.pk %}selected{% endif %}>
+                                                    {{ periodo.nombre }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="proyectos_defecto" class="form-label">
+                                                <i class="fas fa-project-diagram me-1"></i>
+                                                Proyectos por Defecto
+                                            </label>
+                                            <select class="form-select" id="proyectos_defecto" name="proyectos_defecto" multiple>
+                                                {% for proyecto in proyectos %}
+                                                <option value="{{ proyecto.pk }}"
+                                                        {% if proyecto.pk in form.proyectos_defecto.value %}selected{% endif %}>
+                                                    {{ proyecto.nombre }}
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="form-text">
+                                                Mantén presionado Ctrl (Cmd en Mac) para seleccionar múltiples proyectos
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="solo_activos" name="solo_activos"
+                                                       {% if form.solo_activos.value %}checked{% endif %}>
+                                                <label class="form-check-label" for="solo_activos">
+                                                    <i class="fas fa-check-circle me-1"></i>
+                                                    Solo incluir proyectos activos
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-columns me-2"></i>
+                                            Columnas a Incluir
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="col_fecha" name="columnas" value="fecha"
+                                                           {% if 'fecha' in form.columnas.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="col_fecha">
+                                                        <i class="fas fa-calendar me-1"></i>
+                                                        Fecha
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="col_proyecto" name="columnas" value="proyecto"
+                                                           {% if 'proyecto' in form.columnas.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="col_proyecto">
+                                                        <i class="fas fa-project-diagram me-1"></i>
+                                                        Proyecto
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="col_horas" name="columnas" value="horas"
+                                                           {% if 'horas' in form.columnas.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="col_horas">
+                                                        <i class="fas fa-clock me-1"></i>
+                                                        Horas
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="col_tipo_tarea" name="columnas" value="tipo_tarea"
+                                                           {% if 'tipo_tarea' in form.columnas.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="col_tipo_tarea">
+                                                        <i class="fas fa-tasks me-1"></i>
+                                                        Tipo de Tarea
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="col_descripcion" name="columnas" value="descripcion"
+                                                           {% if 'descripcion' in form.columnas.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="col_descripcion">
+                                                        <i class="fas fa-file-alt me-1"></i>
+                                                        Descripción
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" 
+                                                           id="col_cliente" name="columnas" value="cliente"
+                                                           {% if 'cliente' in form.columnas.value %}checked{% endif %}>
+                                                    <label class="form-check-label" for="col_cliente">
+                                                        <i class="fas fa-building me-1"></i>
+                                                        Cliente
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'reportes:reporte_list' %}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i>
+                                        Volver a Reportes
+                                    </a>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-secondary me-2" id="resetBtn">
+                                            <i class="fas fa-undo me-1"></i>
+                                            Restablecer
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-1"></i>
+                                            Guardar Configuración
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formatoSelect = document.getElementById('formato_exportacion');
+    const separadorSelect = document.getElementById('separador_csv');
+    const resetBtn = document.getElementById('resetBtn');
+    
+    // Show/hide CSV separator based on format selection
+    function toggleSeparadorCSV() {
+        const separadorGroup = separadorSelect.closest('.mb-3');
+        if (formatoSelect.value === 'csv') {
+            separadorGroup.style.display = 'block';
+        } else {
+            separadorGroup.style.display = 'none';
+        }
+    }
+    
+    formatoSelect.addEventListener('change', toggleSeparadorCSV);
+    toggleSeparadorCSV(); // Initial call
+    
+    // Reset form to defaults
+    resetBtn.addEventListener('click', function() {
+        if (confirm('¿Está seguro de restablecer la configuración a los valores por defecto?')) {
+            // Reset to default values
+            formatoSelect.value = 'csv';
+            separadorSelect.value = ',';
+            document.getElementById('incluir_encabezados').checked = true;
+            document.getElementById('solo_activos').checked = true;
+            
+            // Check essential columns
+            const essentialColumns = ['fecha', 'proyecto', 'horas'];
+            document.querySelectorAll('input[name="columnas"]').forEach(checkbox => {
+                checkbox.checked = essentialColumns.includes(checkbox.value);
+            });
+            
+            toggleSeparadorCSV();
+        }
+    });
+    
+    // Form validation
+    document.getElementById('configForm').addEventListener('submit', function(e) {
+        const checkedColumns = document.querySelectorAll('input[name="columnas"]:checked');
+        if (checkedColumns.length === 0) {
+            e.preventDefault();
+            alert('Debe seleccionar al menos una columna para incluir en los reportes.');
+            return false;
+        }
+    });
+    
+    // Auto-save indication
+    let saveTimeout;
+    const inputs = document.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            clearTimeout(saveTimeout);
+            const saveBtn = document.querySelector('button[type="submit"]');
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+            saveBtn.disabled = true;
+            
+            saveTimeout = setTimeout(() => {
+                saveBtn.innerHTML = '<i class="fas fa-save me-1"></i>Guardar Configuración';
+                saveBtn.disabled = false;
+            }, 1000);
+        });
+    });
+});
+</script>
+{% endblock %}

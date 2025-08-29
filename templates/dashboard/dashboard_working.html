@@ -1,0 +1,507 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema de Gestión de Horas{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card {
+    border-left: 4px solid #007bff;
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+.stat-card.success { border-left-color: #28a745; }
+.stat-card.warning { border-left-color: #ffc107; }
+.stat-card.info { border-left-color: #17a2b8; }
+.stat-card.danger { border-left-color: #dc3545; }
+
+.calendar-day {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dee2e6;
+    font-size: 1rem;
+    position: relative;
+}
+.calendar-day strong {
+    font-size: 1.2rem;
+}
+.calendar-day.completo { background-color: #d4edda; color: #155724; }
+.calendar-day.parcial { background-color: #fff3cd; color: #856404; }
+.calendar-day.sin-horas { background-color: #f8d7da; color: #721c24; }
+.calendar-day.fin-semana { background-color: #f8f9fa; color: #6c757d; }
+.calendar-day.feriado { 
+    background-color: #dc3545; 
+    color: white; 
+    cursor: not-allowed !important;
+    position: relative;
+}
+.calendar-day.feriado::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(255,255,255,0.1),
+        rgba(255,255,255,0.1) 5px,
+        transparent 5px,
+        transparent 10px
+    );
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">Dashboard</h1>
+            {% if periodo_activo %}
+            <p class="text-muted">Período activo: {{ periodo_activo.nombre }} ({{ periodo_activo.fecha_inicio }} - {{ periodo_activo.fecha_fin }})</p>
+            {% else %}
+            <div class="alert alert-warning mt-2">
+                No hay período activo. <a href="{% url 'core:periodo_list' %}">Configurar período</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información del Período Activo -->
+    {% if periodo_activo %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>{{ periodo_activo.nombre }}
+                        <small class="float-end">{{ periodo_activo.fecha_inicio }} - {{ periodo_activo.fecha_fin }}</small>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <!-- Progress Bar Personalizado -->
+                            <div style="width: 100%; height: 25px; background-color: #e9ecef; border-radius: 4px; position: relative; margin-bottom: 8px;">
+                                <div style="width: {{ porcentaje_completacion|floatformat:1 }}%; height: 100%; background-color: {% if porcentaje_completacion >= 100 %}#28a745{% elif porcentaje_completacion >= 75 %}#ffc107{% else %}#dc3545{% endif %}; border-radius: 4px; position: relative;">
+                                    <span style="position: absolute; width: 100%; text-align: center; line-height: 25px; color: white; font-weight: bold; left: 0;">
+                                        {{ porcentaje_completacion|floatformat:1 }}%
+                                    </span>
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                {{ total_horas|floatformat:1 }}h de {{ horas_objetivo }}h objetivo
+                                {% if horas_faltantes > 0 %}
+                                    (faltan {{ horas_faltantes|floatformat:1 }}h)
+                                {% else %}
+                                    (¡Objetivo alcanzado!)
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="text-muted">
+                                <div><strong>Límite diario:</strong> {{ periodo_activo.horas_max_dia }}h</div>
+                                <div><strong>Días trabajados:</strong> {{ dias_trabajados }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Botones Aceleradores -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'horas:hora_create' %}" class="btn btn-success w-100 py-3">
+                                <i class="fas fa-plus fa-2x d-block mb-2"></i>
+                                <strong>Registrar Horas</strong>
+                                <small class="d-block text-light">Registro simple</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'horas:hora_create_multiple' %}" class="btn btn-info w-100 py-3">
+                                <i class="fas fa-layer-group fa-2x d-block mb-2"></i>
+                                <strong>Registro Múltiple</strong>
+                                <small class="d-block text-light">Varios registros</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'horas:hora_list' %}" class="btn btn-primary w-100 py-3">
+                                <i class="fas fa-list fa-2x d-block mb-2"></i>
+                                <strong>Ver Horas</strong>
+                                <small class="d-block text-light">Gestionar registros</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'proyectos:proyecto_list' %}" class="btn btn-warning w-100 py-3">
+                                <i class="fas fa-project-diagram fa-2x d-block mb-2"></i>
+                                <strong>Proyectos</strong>
+                                <small class="d-block text-dark">Gestionar proyectos</small>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'reportes:exportar' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-download me-2"></i>Exportar Datos
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'core:periodo_list' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-calendar me-2"></i>Períodos
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <a href="{% url 'core:feriado_list' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-calendar-times me-2"></i>Feriados
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Total Horas</h6>
+                            <h3 class="mb-0">{{ total_horas|floatformat:1 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-clock fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Objetivo</h6>
+                            <h3 class="mb-0">{{ horas_objetivo|floatformat:0 }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-target fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card {% if porcentaje_completacion >= 100 %}success{% elif porcentaje_completacion >= 75 %}warning{% else %}danger{% endif %}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Completación</h6>
+                            <h3 class="mb-0">{{ porcentaje_completacion|floatformat:1 }}%</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-pie fa-2x {% if porcentaje_completacion >= 100 %}text-success{% elif porcentaje_completacion >= 75 %}text-warning{% else %}text-danger{% endif %}"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="card-title text-muted">Días Trabajados</h6>
+                            <h3 class="mb-0">{{ dias_trabajados }}</h3>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-check fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendario -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Calendario de Horas</h5>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary" onclick="cambiarMes(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="mes-actual" class="mx-3"></span>
+                        <button class="btn btn-sm btn-outline-primary" onclick="cambiarMes(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="calendario-loading" class="text-center py-4">
+                        <div class="spinner-border" role="status"></div>
+                        <p class="mt-2">Cargando calendario...</p>
+                    </div>
+                    <div id="calendario-content" style="display: none;"></div>
+                    <div id="calendario-error" style="display: none;" class="alert alert-danger">
+                        Error al cargar el calendario. <button class="btn btn-sm btn-primary" onclick="cargarCalendario()">Reintentar</button>
+                    </div>
+                    
+                    <!-- Leyenda -->
+                    <div class="mt-3 text-center">
+                        <small class="text-muted">
+                            <span class="badge bg-success me-2">Completo ({% if periodo_activo %}{{ periodo_activo.horas_max_dia }}{% else %}8{% endif %}+ horas)</span>
+                            <span class="badge bg-warning text-dark me-2">Parcial (&lt;{% if periodo_activo %}{{ periodo_activo.horas_max_dia }}{% else %}8{% endif %} horas)</span>
+                            <span class="badge bg-danger me-2">Sin horas</span>
+                            <span class="badge bg-secondary me-2">Fin de semana</span>
+                            <span class="badge bg-info me-2">Feriado</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para mostrar horas del día -->
+<div class="modal fade" id="modalHorasDia" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-day me-2"></i>Horas del día <span id="fechaSeleccionada"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="horasDiaLoading" class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                    <span class="ms-2">Cargando...</span>
+                </div>
+                <div id="horasDiaContent" style="display: none;"></div>
+                <div id="horasDiaError" style="display: none;" class="alert alert-warning">
+                    No hay registros de horas para este día.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="btnRegistrarHoras" href="#" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>Registrar Horas
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Variables globales
+let fechaActual = new Date();
+const limiteDiario = parseFloat('{% if periodo_activo %}{{ periodo_activo.horas_max_dia }}{% else %}8{% endif %}');
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard iniciado. Límite diario:', limiteDiario);
+    cargarCalendario();
+});
+
+function cambiarMes(direccion) {
+    fechaActual.setMonth(fechaActual.getMonth() + direccion);
+    cargarCalendario();
+}
+
+async function cargarCalendario() {
+    const year = fechaActual.getFullYear();
+    const month = fechaActual.getMonth() + 1;
+    
+    // Actualizar título
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    document.getElementById('mes-actual').textContent = `${meses[month-1]} ${year}`;
+    
+    // Mostrar loading
+    document.getElementById('calendario-loading').style.display = 'block';
+    document.getElementById('calendario-content').style.display = 'none';
+    document.getElementById('calendario-error').style.display = 'none';
+    
+    try {
+        const response = await fetch(`/api/calendario/${year}/${month}/`);
+        const data = await response.json();
+        
+        if (data.success) {
+            mostrarCalendario(data.calendario);
+        } else {
+            throw new Error(data.error || 'Error desconocido');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('calendario-loading').style.display = 'none';
+        document.getElementById('calendario-error').style.display = 'block';
+    }
+}
+
+function mostrarCalendario(calendario) {
+    const content = document.getElementById('calendario-content');
+    
+    let html = '<table class="table table-bordered mb-0">';
+    html += '<thead class="table-light"><tr>';
+    html += '<th class="text-center">Lun</th><th class="text-center">Mar</th><th class="text-center">Mié</th>';
+    html += '<th class="text-center">Jue</th><th class="text-center">Vie</th><th class="text-center">Sáb</th><th class="text-center">Dom</th>';
+    html += '</tr></thead><tbody>';
+    
+    calendario.forEach(semana => {
+        html += '<tr>';
+        semana.forEach(dia => {
+            if (dia === null) {
+                html += '<td></td>';
+            } else {
+                let clase = 'calendar-day';
+                
+                if (dia.es_feriado) {
+                    clase += ' feriado';
+                } else if (dia.es_fin_semana) {
+                    clase += ' fin-semana';
+                } else if (dia.horas >= limiteDiario) {
+                    clase += ' completo';
+                } else if (dia.horas > 0) {
+                    clase += ' parcial';
+                } else {
+                    clase += ' sin-horas';
+                }
+                
+                html += `<td class="text-center p-1">`;
+                if (dia.es_feriado) {
+                    html += `<div class="${clase}" title="Día feriado - No se pueden registrar horas">`;
+                    html += `<div><strong>${dia.dia}</strong></div>`;
+                    html += `<div style="font-size: 0.7rem;"><i class="fas fa-ban"></i></div>`;
+                    if (dia.horas > 0) {
+                        html += `<div style="font-size: 0.6rem;">${dia.horas}h</div>`;
+                    }
+                } else if (dia.es_fin_semana) {
+                    html += `<div class="${clase}" title="Fin de semana">`;
+                    html += `<div><strong>${dia.dia}</strong></div>`;
+                    if (dia.horas > 0) {
+                        html += `<div style="font-size: 0.7rem;">${dia.horas}h</div>`;
+                    }
+                } else {
+                    html += `<div class="${clase}" style="cursor: pointer;" onclick="verHorasDia('${dia.fecha}')">`;
+                    html += `<div><strong>${dia.dia}</strong></div>`;
+                    if (dia.horas > 0) {
+                        html += `<div style="font-size: 0.7rem;">${dia.horas}h</div>`;
+                    }
+                }
+                html += '</div></td>';
+            }
+        });
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    
+    content.innerHTML = html;
+    document.getElementById('calendario-loading').style.display = 'none';
+    document.getElementById('calendario-content').style.display = 'block';
+}
+
+async function verHorasDia(fecha) {
+    // Verificar si es día válido para registros
+    const fechaObj = new Date(fecha + 'T00:00:00');
+    const diaSemana = fechaObj.getDay();
+    
+    // Verificar si es fin de semana
+    if (diaSemana === 0 || diaSemana === 6) {
+        alert('No se pueden registrar horas en fines de semana.');
+        return;
+    }
+    
+    // Actualizar título del modal
+    document.getElementById('fechaSeleccionada').textContent = fecha;
+    
+    // Actualizar enlace de registrar horas
+    document.getElementById('btnRegistrarHoras').href = `/horas/registrar/?fecha=${fecha}`;
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('modalHorasDia'));
+    modal.show();
+    
+    // Mostrar loading
+    document.getElementById('horasDiaLoading').style.display = 'block';
+    document.getElementById('horasDiaContent').style.display = 'none';
+    document.getElementById('horasDiaError').style.display = 'none';
+    
+    try {
+        const response = await fetch(`/horas/api/fecha/${fecha}/`);
+        const data = await response.json();
+        
+        if (data.length > 0) {
+            mostrarHorasDia(data);
+        } else {
+            document.getElementById('horasDiaLoading').style.display = 'none';
+            document.getElementById('horasDiaError').style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error cargando horas del día:', error);
+        document.getElementById('horasDiaLoading').style.display = 'none';
+        document.getElementById('horasDiaError').style.display = 'block';
+    }
+}
+
+function mostrarHorasDia(horas) {
+    const content = document.getElementById('horasDiaContent');
+    
+    let html = '<div class="table-responsive">';
+    html += '<table class="table table-sm table-hover" style="font-size: 1rem;">';
+    html += '<thead class="table-light"><tr style="font-weight: 600;"><th>Proyecto</th><th>Horas</th><th>Tipo</th><th>Descripción</th></tr></thead>';
+    html += '<tbody>';
+    
+    let totalHoras = 0;
+    horas.forEach(hora => {
+        totalHoras += parseFloat(hora.horas);
+        html += '<tr>';
+        html += `<td><strong>${hora.proyecto}</strong></td>`;
+        html += `<td>${hora.horas}h</td>`;
+        html += `<td><span class="badge ${hora.tipo_tarea === 'tarea' ? 'bg-primary' : 'bg-info'} fs-6 px-2 py-1">${hora.tipo_tarea === 'tarea' ? 'Tarea' : 'Reunión'}</span></td>`;
+        html += `<td style="font-size: 0.95rem; line-height: 1.4;">${hora.descripcion || '-'}</td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    html += `<div class="text-end mt-3"><h5 class="text-success mb-0">Total: ${totalHoras}h</h5></div>`;
+    html += '</div>';
+    
+    content.innerHTML = html;
+    document.getElementById('horasDiaLoading').style.display = 'none';
+    document.getElementById('horasDiaContent').style.display = 'block';
+}
+</script>
+{% endblock %}

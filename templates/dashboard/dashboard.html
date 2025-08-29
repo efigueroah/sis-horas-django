@@ -1,0 +1,1383 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema de Gestión de Horas{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar CSS -->
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+<!-- Calendar Widgets CSS -->
+<link href="{% static 'css/calendar-widgets.css' %}" rel="stylesheet">
+
+<style>
+    .card-stat {
+        border-left: 4px solid;
+        transition: transform 0.2s;
+    }
+    .card-stat:hover {
+        transform: translateY(-2px);
+    }
+    .card-stat.primary { border-left-color: #007bff; }
+    .card-stat.success { border-left-color: #28a745; }
+    .card-stat.warning { border-left-color: #ffc107; }
+    .card-stat.info { border-left-color: #17a2b8; }
+    
+    /* FullCalendar Custom Styles */
+    #fullcalendar-container {
+        min-height: 600px;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1.5rem !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+    }
+    
+    .fc-button-primary {
+        background-color: #007bff !important;
+        border-color: #007bff !important;
+    }
+    
+    .fc-button-primary:hover {
+        background-color: #0056b3 !important;
+        border-color: #0056b3 !important;
+    }
+    
+    .fc-event {
+        border-radius: 4px !important;
+        font-weight: 500 !important;
+        cursor: pointer !important;
+    }
+    
+    .fc-event:hover {
+        opacity: 0.8 !important;
+    }
+    
+    /* Custom event colors */
+    .fc-event.event-complete {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+    
+    /* Estilos para Acciones Rápidas */
+    .quick-actions-card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .quick-action-btn {
+        min-height: 120px;
+        border-radius: 0.75rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .quick-action-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        text-decoration: none;
+    }
+    
+    .quick-action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .quick-action-btn:hover::before {
+        left: 100%;
+    }
+    
+    .quick-action-btn i {
+        transition: transform 0.3s ease;
+    }
+    
+    .quick-action-btn:hover i {
+        transform: scale(1.1);
+    }
+    
+    /* Colores específicos para cada acción */
+    .quick-action-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border-color: #007bff;
+    }
+    
+    .quick-action-success {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+        border-color: #28a745;
+    }
+    
+    .quick-action-info {
+        background: linear-gradient(135deg, #17a2b8, #117a8b);
+        border-color: #17a2b8;
+    }
+    
+    .quick-action-outline {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 2px solid #007bff;
+        color: #007bff;
+    }
+    
+    .quick-action-outline:hover {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+    }
+    
+    /* Botones secundarios */
+    .secondary-actions .btn {
+        transition: all 0.2s ease;
+    }
+    
+    .secondary-actions .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Responsive para acciones rápidas */
+    @media (max-width: 768px) {
+        .quick-action-btn {
+            min-height: 100px;
+        }
+        
+        .quick-action-btn i {
+            font-size: 1.5rem;
+        }
+        
+        .quick-action-btn strong {
+            font-size: 0.9rem;
+        }
+        
+        .quick-action-btn small {
+            font-size: 0.75rem;
+        }
+    }
+    
+    .fc-event.event-partial {
+        background-color: #ffc107 !important;
+        border-color: #ffc107 !important;
+        color: #212529 !important;
+    }
+    
+    .fc-event.event-minimal {
+        background-color: #17a2b8 !important;
+        border-color: #17a2b8 !important;
+    }
+    
+    /* Legend styles */
+    .calendar-legend {
+        font-size: 0.875rem;
+    }
+    
+    .legend-color {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+    }
+    
+    .legend-color.complete { background-color: #28a745; }
+    .legend-color.partial { background-color: #ffc107; }
+    .legend-color.minimal { background-color: #17a2b8; }
+    .legend-color.weekend { background-color: #ff9800; }
+    .legend-color.holiday { background-color: #f44336; }
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #dee2e6;
+        cursor: pointer;
+        transition: all 0.2s;
+        min-height: 40px;
+    }
+    .calendar-day:hover {
+        background-color: #e9ecef !important;
+    }
+    .calendar-day.fin_semana {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+    .calendar-day.feriado {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .calendar-day.completo {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .calendar-day.incompleto {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+    .calendar-day.sin_horas {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h1>
+            <div>
+                <button class="btn btn-primary" onclick="refreshDashboard()">
+                    <i class="fas fa-sync-alt me-1"></i>Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Selector de Período -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>Período Activo
+                        </h5>
+                        <p class="text-muted mb-0" id="periodo-info">
+                            {% if periodo_activo %}
+                                {{ periodo_activo.nombre }} ({{ periodo_activo.fecha_inicio|date:"d/m/Y" }} - {{ periodo_activo.fecha_fin|date:"d/m/Y" }})
+                            {% else %}
+                                No hay período activo
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <select class="form-select d-inline-block w-auto me-2" id="selector-periodo">
+                            <option>Cargando períodos...</option>
+                        </select>
+                        <button class="btn btn-success btn-sm" onclick="activarPeriodo()">
+                            <i class="fas fa-play me-1"></i>Activar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Acciones Rápidas -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card quick-actions-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt text-warning me-2"></i>
+                    Acciones Rápidas
+                </h5>
+                <small class="text-muted">Funciones más utilizadas para gestión de horas</small>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Registrar Horas Individual -->
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'horas:hora_create' %}" class="btn quick-action-btn quick-action-primary w-100 h-100 d-flex flex-column justify-content-center align-items-center text-decoration-none">
+                            <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                            <strong>Registrar Horas</strong>
+                            <small class="opacity-75">Registro individual</small>
+                        </a>
+                    </div>
+                    
+                    <!-- Registro en Bloque -->
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'horas:hora_bloque' %}" class="btn quick-action-btn quick-action-success w-100 h-100 d-flex flex-column justify-content-center align-items-center text-decoration-none">
+                            <i class="fas fa-layer-group fa-2x mb-2"></i>
+                            <strong>Registro en Bloque</strong>
+                            <small class="opacity-75">Tareas repetitivas</small>
+                        </a>
+                    </div>
+                    
+                    <!-- Vista Completa del Día -->
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'horas:vista_completa_dia' %}" class="btn quick-action-btn quick-action-info w-100 h-100 d-flex flex-column justify-content-center align-items-center text-decoration-none">
+                            <i class="fas fa-calendar-day fa-2x mb-2"></i>
+                            <strong>Vista del Día</strong>
+                            <small class="opacity-75">Análisis detallado</small>
+                        </a>
+                    </div>
+                    
+                    <!-- Ver Todas las Horas -->
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'horas:hora_list' %}" class="btn quick-action-btn quick-action-outline w-100 h-100 d-flex flex-column justify-content-center align-items-center text-decoration-none">
+                            <i class="fas fa-list fa-2x mb-2"></i>
+                            <strong>Ver Todas</strong>
+                            <small class="opacity-75">Lista completa</small>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Acciones Secundarias -->
+                <div class="row g-2 mt-3 secondary-actions">
+                    <div class="col-md-4">
+                        <a href="{% url 'core:feriado_list' %}" class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="fas fa-calendar-times me-1"></i>Gestionar Feriados
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'core:periodo_list' %}" class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="fas fa-calendar-alt me-1"></i>Gestionar Períodos
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{% url 'proyectos:proyecto_list' %}" class="btn btn-outline-secondary btn-sm w-100">
+                            <i class="fas fa-project-diagram me-1"></i>Gestionar Proyectos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-stat primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-muted">Total Horas</h6>
+                        <h3 class="mb-0" id="total-horas">{{ total_horas|default:0 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x text-primary"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card card-stat success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-muted">Completación</h6>
+                        <h3 class="mb-0" id="porcentaje-completacion">{{ porcentaje_completacion|floatformat:1|default:0 }}%</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-chart-pie fa-2x text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card card-stat warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-muted">Horas Faltantes</h6>
+                        <h3 class="mb-0" id="horas-faltantes">{{ horas_faltantes|default:0 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card card-stat info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="card-title text-muted">Días Trabajados</h6>
+                        <h3 class="mb-0" id="dias-trabajados">{{ dias_trabajados|default:0 }}</h3>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-check fa-2x text-info"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendario Profesional con FullCalendar -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>Calendario de Horas Trabajadas
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="calendar-today">
+                            <i class="fas fa-calendar-day me-1"></i>Hoy
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="calendar-refresh">
+                            <i class="fas fa-sync-alt me-1"></i>Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <!-- FullCalendar Container -->
+                <div id="fullcalendar-container" style="padding: 1rem;">
+                    <!-- FullCalendar se renderiza aquí -->
+                </div>
+                
+                <!-- Loading State -->
+                <div id="calendar-loading" class="text-center py-5" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando calendario...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Cargando eventos del calendario...</p>
+                </div>
+                
+                <!-- Error State -->
+                <div id="calendar-error" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                    <h5>Error al cargar el calendario</h5>
+                    <p class="text-muted">No se pudieron cargar los eventos del calendario.</p>
+                    <button class="btn btn-primary" onclick="initializeCalendar()">
+                        <i class="fas fa-retry me-1"></i>Reintentar
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Calendar Legend -->
+            <div class="card-footer bg-light">
+                <div class="calendar-legend d-flex flex-wrap gap-3 justify-content-center">
+                    <div class="legend-item">
+                        <span class="legend-color complete me-1"></span>
+                        <small>Día completo ({% if periodo_activo %}{{ periodo_activo.horas_max_dia }}{% else %}8{% endif %}+ horas)</small>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color partial me-1"></span>
+                        <small>Día parcial (1-{% if periodo_activo %}{{ periodo_activo.horas_max_dia|add:"-0.5" }}{% else %}7.5{% endif %} horas)</small>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color minimal me-1"></span>
+                        <small>Pocas horas (1-3 horas)</small>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color weekend me-1"></span>
+                        <small>Fin de semana</small>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color holiday me-1"></span>
+                        <small>Feriado</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <span class="badge bg-success me-2">Completo</span>
+                        <span class="badge bg-warning me-2">Incompleto</span>
+                        <span class="badge bg-danger me-2">Sin horas</span>
+                        <span class="badge bg-secondary me-2">Fin de semana</span>
+                        <span class="badge bg-info">Feriado</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Registrar Horas -->
+<div class="modal fade" id="modalRegistrarHoras" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Registrar Horas
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-registrar-horas">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" class="form-control" id="fecha-registro" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Proyecto</label>
+                        <select class="form-select" id="proyecto-registro" required>
+                            <option value="">Seleccionar proyecto...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Horas</label>
+                        <input type="range" class="form-range" id="horas-slider" 
+                               min="0.5" max="12" step="0.5" value="1">
+                        <div class="d-flex justify-content-between">
+                            <small>0.5h</small>
+                            <strong id="horas-valor">1.0h</strong>
+                            <small>12h</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Tarea</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_tarea" 
+                                       id="tipo-tarea" value="tarea" checked>
+                                <label class="form-check-label" for="tipo-tarea">
+                                    <i class="fas fa-tasks me-1"></i>Tarea
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tipo_tarea" 
+                                       id="tipo-reunion" value="reunion">
+                                <label class="form-check-label" for="tipo-reunion">
+                                    <i class="fas fa-users me-1"></i>Reunión
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-control" id="descripcion-registro" rows="3" 
+                                  placeholder="Describe las actividades realizadas..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarRegistroHoras()">
+                    <i class="fas fa-save me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar JavaScript -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+<!-- FullCalendar Spanish Locale -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/es.global.min.js'></script>
+<!-- Calendar Widgets JavaScript -->
+<script src="{% static 'js/calendar-widgets.js' %}"></script>
+
+<script>
+// Variables globales
+let calendar = null;
+let periodoActivo = null;
+
+// Inicializar dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Inicializando dashboard profesional...');
+    
+    {% if not periodo_activo %}
+    // Mostrar alerta si no hay período activo
+    console.warn('No hay período activo configurado');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+    alertDiv.innerHTML = '<strong>Atención:</strong> No hay un período activo configurado. <a href="{% url "core:periodo_list" %}" class="alert-link">Configure un período</a> para ver el calendario correctamente. <button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+    const container = document.querySelector('.container-fluid');
+    if (container) container.prepend(alertDiv);
+    {% endif %}
+    
+    // Cargar datos iniciales
+    cargarPeriodos();
+    initializeCalendar();
+    
+    // Configurar controles del calendario
+    setupCalendarControls();
+    
+    // Inicializar modal de registro
+    inicializarModalRegistro();
+    
+    // Configurar slider de horas
+    const slider = document.getElementById('horas-slider');
+    const valorHoras = document.getElementById('horas-valor');
+    
+    if (slider && valorHoras) {
+        slider.addEventListener('input', function() {
+            valorHoras.textContent = parseFloat(this.value).toFixed(1) + 'h';
+        });
+    }
+});
+
+// Inicializar FullCalendar
+function initializeCalendar() {
+    console.log('Inicializando FullCalendar...');
+    
+    const calendarEl = document.getElementById('fullcalendar-container');
+    const loadingEl = document.getElementById('calendar-loading');
+    const errorEl = document.getElementById('calendar-error');
+    
+    // Mostrar loading
+    showCalendarLoading(true);
+    
+    try {
+        // Destruir calendario existente si existe
+        if (calendar) {
+            calendar.destroy();
+        }
+        
+        // Crear nuevo calendario
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            // Configuración básica
+            locale: 'es',
+            initialView: 'dayGridMonth',
+            height: 'auto',
+            
+            // Configuración de la barra de herramientas
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,listWeek'
+            },
+            
+            // Textos en español
+            buttonText: {
+                today: 'Hoy',
+                month: 'Mes',
+                week: 'Semana',
+                list: 'Lista'
+            },
+            
+            // Configuración de eventos
+            events: loadCalendarEvents,
+            eventClick: handleEventClick,
+            dateClick: handleDateClick,
+            eventDidMount: styleCalendarEvent,
+            
+            // Configuración de días
+            dayMaxEvents: 3,
+            moreLinkClick: 'popover',
+            
+            // Configuración de navegación
+            navLinks: true,
+            
+            // Configuración de selección
+            selectable: true,
+            selectMirror: true,
+            select: handleDateSelect,
+            
+            // Configuración de arrastrar y soltar
+            editable: false,
+            
+            // Configuración de vista
+            aspectRatio: 1.8,
+            
+            // Callbacks de carga
+            loading: function(isLoading) {
+                showCalendarLoading(isLoading);
+            },
+            
+            // Configuración de fin de semana
+            weekends: true,
+            
+            // Configuración de horario de negocio
+            businessHours: {
+                daysOfWeek: [1, 2, 3, 4, 5], // Lunes a viernes
+                startTime: '08:00',
+                endTime: '18:00'
+            }
+        });
+        
+        // Renderizar calendario
+        calendar.render();
+        
+        console.log('FullCalendar inicializado correctamente');
+        showCalendarError(false);
+        
+    } catch (error) {
+        console.error('Error inicializando FullCalendar:', error);
+        showCalendarError(true);
+    } finally {
+        showCalendarLoading(false);
+    }
+}
+
+// Cargar eventos del calendario desde la API
+async function loadCalendarEvents(info, successCallback, failureCallback) {
+    try {
+        console.log('Cargando eventos del calendario...');
+        
+        const year = info.start.getFullYear();
+        const month = info.start.getMonth() + 1;
+        
+        // Usar la API del calendario que maneja períodos activos
+        const response = await fetch(`/api/calendario/${year}/${month}/`);
+        
+        if (!response.ok) {
+            throw new Error(`Error cargando calendario: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Error desconocido');
+        }
+        
+        // Transformar datos del calendario a eventos de FullCalendar
+        const events = transformCalendarDataToEvents(data.calendario, year, month);
+        
+        console.log(`Cargados ${events.length} eventos del calendario`);
+        successCallback(events);
+        
+    } catch (error) {
+        console.error('Error cargando eventos del calendario:', error);
+        failureCallback(error);
+    }
+}
+
+// Configuración de límites desde el backend
+const limiteDiario = {% if periodo_activo %}{{ periodo_activo.horas_max_dia }}{% else %}8{% endif %};
+
+// Transformar datos de la API a eventos de FullCalendar
+function transformDataToCalendarEvents(horasData, feriadosData, startDate, endDate) {
+    const events = [];
+    const horasPorFecha = {};
+    
+    // Agrupar horas por fecha
+    horasData.forEach(hora => {
+        if (!horasPorFecha[hora.fecha]) {
+            horasPorFecha[hora.fecha] = {
+                fecha: hora.fecha,
+                totalHoras: 0,
+                registros: []
+            };
+        }
+        
+        horasPorFecha[hora.fecha].totalHoras += parseFloat(hora.horas);
+        horasPorFecha[hora.fecha].registros.push(hora);
+    });
+    
+    // Crear eventos para días con horas trabajadas
+    Object.values(horasPorFecha).forEach(dia => {
+        const eventClass = getEventClassByHours(dia.totalHoras);
+        const eventColor = getEventColorByHours(dia.totalHoras);
+        
+        events.push({
+            id: `horas-${dia.fecha}`,
+            title: `${dia.totalHoras.toFixed(1)}h`,
+            start: dia.fecha,
+            allDay: true,
+            backgroundColor: eventColor.bg,
+            borderColor: eventColor.border,
+            textColor: eventColor.text,
+            className: `fc-event ${eventClass}`,
+            extendedProps: {
+                type: 'horas',
+                totalHoras: dia.totalHoras,
+                registros: dia.registros,
+                fecha: dia.fecha
+            }
+        });
+    });
+    
+    // Crear eventos para feriados
+    feriadosData.forEach(feriado => {
+        const fechaFeriado = new Date(feriado.fecha);
+        const startDateObj = new Date(startDate);
+        const endDateObj = new Date(endDate);
+        
+        if (fechaFeriado >= startDateObj && fechaFeriado <= endDateObj) {
+            events.push({
+                id: `feriado-${feriado.fecha}`,
+                title: `🏖️ ${feriado.nombre}`,
+                start: feriado.fecha,
+                allDay: true,
+                backgroundColor: '#f44336',
+                borderColor: '#d32f2f',
+                textColor: 'white',
+                className: 'fc-event event-holiday',
+                extendedProps: {
+                    type: 'feriado',
+                    nombre: feriado.nombre,
+                    fecha: feriado.fecha
+                }
+            });
+        }
+    });
+    
+    return events;
+}
+
+// Transformar datos del calendario a eventos de FullCalendar
+function transformCalendarDataToEvents(calendario, year, month) {
+    const events = [];
+    
+    calendario.forEach(semana => {
+        semana.forEach(dia => {
+            if (dia && dia.dia) {
+                const fecha = `${year}-${month.toString().padStart(2, '0')}-${dia.dia.toString().padStart(2, '0')}`;
+                
+                // Crear evento para el día
+                if (dia.horas > 0) {
+                    const colors = getEventColorByHours(dia.horas);
+                    events.push({
+                        id: `horas-${fecha}`,
+                        title: `${dia.horas}h`,
+                        start: fecha,
+                        allDay: true,
+                        backgroundColor: colors.bg,
+                        borderColor: colors.border,
+                        textColor: colors.text,
+                        classNames: [getEventClassByHours(dia.horas)],
+                        extendedProps: {
+                            tipo: 'horas',
+                            horas: dia.horas,
+                            estado: dia.estado
+                        }
+                    });
+                }
+                
+                // Agregar indicador de estado del día
+                if (dia.es_feriado) {
+                    events.push({
+                        id: `feriado-${fecha}`,
+                        title: 'Feriado',
+                        start: fecha,
+                        allDay: true,
+                        backgroundColor: '#f44336',
+                        borderColor: '#d32f2f',
+                        textColor: 'white',
+                        classNames: ['event-feriado']
+                    });
+                }
+            }
+        });
+    });
+    
+    return events;
+}
+
+// Obtener clase CSS según las horas trabajadas
+function getEventClassByHours(horas) {
+    if (horas >= limiteDiario) return 'event-complete';
+    if (horas >= limiteDiario * 0.5) return 'event-partial';
+    if (horas > 0) return 'event-minimal';
+    return 'event-none';
+}
+
+// Obtener colores según las horas trabajadas
+function getEventColorByHours(horas) {
+    if (horas >= limiteDiario) {
+        return { bg: '#28a745', border: '#1e7e34', text: 'white' };
+    } else if (horas >= limiteDiario * 0.5) {
+        return { bg: '#ffc107', border: '#e0a800', text: '#212529' };
+    } else if (horas > 0) {
+        return { bg: '#17a2b8', border: '#138496', text: 'white' };
+    }
+    return { bg: '#6c757d', border: '#545b62', text: 'white' };
+}
+
+// Manejar clic en evento
+function handleEventClick(info) {
+    const event = info.event;
+    const props = event.extendedProps;
+    
+    if (props.type === 'horas') {
+        showDayDetailsModal(props.fecha, props.registros, props.totalHoras);
+    } else if (props.type === 'feriado') {
+        showHolidayModal(props.nombre, props.fecha);
+    }
+}
+
+// Manejar clic en fecha
+function handleDateClick(info) {
+    const fecha = info.dateStr;
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Solo permitir agregar horas en fechas pasadas o actuales
+    if (fecha <= today) {
+        window.location.href = `/horas/registrar/?fecha=${fecha}`;
+    } else {
+        SisHoras.showAlert('No se pueden registrar horas en fechas futuras', 'warning');
+    }
+}
+
+// Manejar selección de rango de fechas
+function handleDateSelect(info) {
+    const start = info.startStr;
+    const end = info.endStr;
+    
+    // Si es un solo día, redirigir a crear hora
+    if (start === end) {
+        handleDateClick({ dateStr: start });
+    } else {
+        // Mostrar modal para crear múltiples registros
+        showMultipleDaysModal(start, end);
+    }
+    
+    calendar.unselect();
+}
+
+// Estilizar eventos después de renderizar
+function styleCalendarEvent(info) {
+    const event = info.event;
+    const props = event.extendedProps;
+    
+    // Agregar tooltip
+    if (props.type === 'horas') {
+        info.el.title = `${props.totalHoras} horas trabajadas\nClic para ver detalles`;
+    } else if (props.type === 'feriado') {
+        info.el.title = `Feriado: ${props.nombre}`;
+    }
+    
+    // Agregar efectos hover
+    info.el.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.05)';
+        this.style.zIndex = '1000';
+    });
+    
+    info.el.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+        this.style.zIndex = 'auto';
+    });
+}
+
+// Configurar controles del calendario
+function setupCalendarControls() {
+    // Botón "Hoy"
+    const todayBtn = document.getElementById('calendar-today');
+    if (todayBtn) {
+        todayBtn.addEventListener('click', function() {
+            if (calendar) {
+                calendar.today();
+            }
+        });
+    }
+    
+    // Botón "Actualizar"
+    const refreshBtn = document.getElementById('calendar-refresh');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function() {
+            if (calendar) {
+                calendar.refetchEvents();
+                SisHoras.showAlert('Calendario actualizado', 'success');
+            }
+        });
+    }
+}
+
+// Mostrar/ocultar loading del calendario
+function showCalendarLoading(show) {
+    const loadingEl = document.getElementById('calendar-loading');
+    const calendarEl = document.getElementById('fullcalendar-container');
+    
+    if (loadingEl && calendarEl) {
+        if (show) {
+            loadingEl.style.display = 'block';
+            calendarEl.style.opacity = '0.5';
+        } else {
+            loadingEl.style.display = 'none';
+            calendarEl.style.opacity = '1';
+        }
+    }
+}
+
+// Mostrar/ocultar error del calendario
+function showCalendarError(show) {
+    const errorEl = document.getElementById('calendar-error');
+    const calendarEl = document.getElementById('fullcalendar-container');
+    
+    if (errorEl && calendarEl) {
+        if (show) {
+            errorEl.style.display = 'block';
+            calendarEl.style.display = 'none';
+        } else {
+            errorEl.style.display = 'none';
+            calendarEl.style.display = 'block';
+        }
+    }
+}
+
+// Mostrar modal con detalles del día
+function showDayDetailsModal(fecha, registros, totalHoras) {
+    const fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    const modalHtml = `
+        <div class="modal fade" id="dayDetailsModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-calendar-day me-2"></i>
+                            ${fechaFormateada}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        ${renderDayDetailsContent(registros, totalHoras)}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <a href="/horas/registrar/?fecha=${fecha}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Agregar Horas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal existente si existe
+    const existingModal = document.getElementById('dayDetailsModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Agregar nuevo modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('dayDetailsModal'));
+    modal.show();
+    
+    // Limpiar modal al cerrar
+    document.getElementById('dayDetailsModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Renderizar contenido de detalles del día
+function renderDayDetailsContent(registros, totalHoras) {
+    if (!registros || registros.length === 0) {
+        return `
+            <div class="text-center py-4">
+                <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                <h5>No hay registros de horas</h5>
+                <p class="text-muted">No se encontraron registros de horas para este día.</p>
+            </div>
+        `;
+    }
+    
+    let html = `
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Total del día:</strong> ${totalHoras.toFixed(1)} horas trabajadas
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <h6>Registros de horas:</h6>
+                <div class="list-group">
+    `;
+    
+    registros.forEach(registro => {
+        const tipoIcon = registro.tipo_tarea === 'reunion' ? 'fas fa-users' : 'fas fa-tasks';
+        const tipoColor = registro.tipo_tarea === 'reunion' ? 'warning' : 'primary';
+        
+        html += `
+            <div class="list-group-item">
+                <div class="d-flex w-100 justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1">
+                            <span class="badge" style="background-color: ${registro.proyecto_color || '#007bff'};">
+                                ${registro.proyecto_nombre || 'Proyecto'}
+                            </span>
+                        </h6>
+                        <p class="mb-1">${registro.descripcion || 'Sin descripción'}</p>
+                        <small class="text-muted">
+                            <i class="${tipoIcon} me-1"></i>
+                            ${registro.tipo_tarea === 'reunion' ? 'Reunión' : 'Tarea'}
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success fs-6">${registro.horas}h</span>
+                        <div class="mt-1">
+                            <a href="/horas/${registro.id}/" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="/horas/${registro.id}/editar/" class="btn btn-sm btn-outline-warning">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+// Mostrar modal de feriado
+function showHolidayModal(nombre, fecha) {
+    const fechaFormateada = new Date(fecha + 'T00:00:00').toLocaleDateString('es-ES', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    const modalHtml = `
+        <div class="modal fade" id="holidayModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-calendar-times me-2"></i>
+                            Día Feriado
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <i class="fas fa-calendar-times fa-4x text-danger mb-3"></i>
+                        <h4>${nombre}</h4>
+                        <p class="text-muted">${fechaFormateada}</p>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No se pueden registrar horas en días feriados
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal existente si existe
+    const existingModal = document.getElementById('holidayModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Agregar nuevo modal
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Mostrar modal
+    const modal = new bootstrap.Modal(document.getElementById('holidayModal'));
+    modal.show();
+    
+    // Limpiar modal al cerrar
+    document.getElementById('holidayModal').addEventListener('hidden.bs.modal', function() {
+        this.remove();
+    });
+}
+
+// Función para refrescar el dashboard (mantener compatibilidad)
+function refreshDashboard() {
+    console.log('Refrescando dashboard...');
+    cargarPeriodos();
+    if (calendar) {
+        calendar.refetchEvents();
+    }
+    location.reload();
+}
+
+// Función para obtener CSRF token
+// Función para obtener CSRF token
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+            return value;
+        }
+    }
+    // Fallback: buscar en meta tag o input hidden
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+        return csrfInput.value;
+    }
+    return '';
+}
+
+// Cargar períodos
+async function cargarPeriodos() {
+    try {
+        console.log('Cargando períodos...');
+        const response = await fetch('/api/periodos/');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const periodos = await response.json();
+        console.log('Períodos cargados:', periodos);
+        
+        const selector = document.getElementById('selector-periodo');
+        if (selector) {
+            selector.innerHTML = '';
+            
+            if (periodos.length === 0) {
+                selector.innerHTML = '<option value="">No hay períodos</option>';
+                return;
+            }
+            
+            periodos.forEach(periodo => {
+                const option = document.createElement('option');
+                option.value = periodo.id;
+                option.textContent = periodo.nombre;
+                if (periodo.activo) {
+                    option.selected = true;
+                    periodoActivo = periodo;
+                }
+                selector.appendChild(option);
+            });
+            
+            // Actualizar información del período
+            if (periodoActivo) {
+                const periodoInfo = document.getElementById('periodo-info');
+                if (periodoInfo) {
+                    periodoInfo.textContent = `${periodoActivo.nombre} (${periodoActivo.fecha_inicio} - ${periodoActivo.fecha_fin})`;
+                }
+            }
+        }
+        
+        // Cargar período activo si no hay selector
+        if (!selector && periodos.length > 0) {
+            periodoActivo = periodos.find(p => p.activo) || periodos[0];
+        }
+        
+    } catch (error) {
+        console.error('Error cargando períodos:', error);
+        const selector = document.getElementById('selector-periodo');
+        if (selector) {
+            selector.innerHTML = '<option value="">Error cargando períodos</option>';
+        }
+    }
+}
+
+// Cargar proyectos para el modal
+async function cargarProyectos() {
+    try {
+        console.log('Cargando proyectos...');
+        const response = await fetch('/api/proyectos/activos/');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const proyectos = await response.json();
+        console.log('Proyectos cargados:', proyectos);
+        
+        const selector = document.getElementById('proyecto-registro');
+        if (selector) {
+            selector.innerHTML = '<option value="">Seleccionar proyecto...</option>';
+            
+            proyectos.forEach(proyecto => {
+                const option = document.createElement('option');
+                option.value = proyecto.id;
+                option.textContent = proyecto.nombre;
+                selector.appendChild(option);
+            });
+        }
+        
+    } catch (error) {
+        console.error('Error cargando proyectos:', error);
+        const selector = document.getElementById('proyecto-registro');
+        if (selector) {
+            selector.innerHTML = '<option value="">Error cargando proyectos</option>';
+        }
+    }
+}
+
+// Inicializar modal de registro
+function inicializarModalRegistro() {
+    const modal = document.getElementById('modalRegistrarHoras');
+    if (modal) {
+        modal.addEventListener('show.bs.modal', function() {
+            // Establecer fecha actual
+            const fechaInput = document.getElementById('fecha-registro');
+            if (fechaInput) {
+                fechaInput.value = new Date().toISOString().split('T')[0];
+            }
+            
+            // Cargar proyectos
+            cargarProyectos();
+        });
+    }
+}
+
+// Función para guardar registro rápido de horas
+function guardarRegistroRapido() {
+    const fecha = document.getElementById('fecha-registro').value;
+    const proyecto = document.getElementById('proyecto-registro').value;
+    const horasSlider = document.getElementById('horas-slider');
+    const horas = horasSlider ? horasSlider.value : '1';
+    const tipoTarea = document.querySelector('input[name="tipo_tarea"]:checked');
+    const descripcion = document.getElementById('descripcion-registro') ? document.getElementById('descripcion-registro').value : '';
+    
+    if (!fecha || !proyecto || !horas) {
+        alert('Por favor complete todos los campos obligatorios');
+        return;
+    }
+    
+    const data = {
+        fecha: fecha,
+        proyecto: parseInt(proyecto),
+        horas: parseFloat(horas),
+        descripcion: descripcion,
+        tipo_tarea: tipoTarea ? tipoTarea.value : 'desarrollo'
+    };
+    
+    console.log('Enviando datos:', data);
+    
+    fetch('/api/horas/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Respuesta del servidor:', data);
+        if (data.success) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalRegistrarHoras'));
+            modal.hide();
+            
+            // Refrescar calendario
+            if (calendar) {
+                calendar.refetchEvents();
+            }
+            
+            // Mostrar mensaje de éxito
+            if (typeof SisHoras !== 'undefined' && SisHoras.showAlert) {
+                SisHoras.showAlert('Registro guardado exitosamente', 'success');
+            } else {
+                alert('Registro guardado exitosamente');
+            }
+        } else {
+            alert('Error al guardar: ' + (data.error || 'Error desconocido'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al guardar el registro');
+    });
+}
+</script>
+{% endblock %}

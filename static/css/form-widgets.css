@@ -1,0 +1,268 @@
+/* Enhanced Form Widgets CSS */
+
+/* Date Input Enhancements */
+input[type="date"].form-control {
+    position: relative;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 4h14M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4M1 4V2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2M5 2v2m6-2v2'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+input[type="date"].form-control::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    right: 0;
+    width: 2.5rem;
+    height: 100%;
+    cursor: pointer;
+}
+
+input[type="date"].form-control:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Time Input Enhancements */
+input[type="time"].form-control {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM8 5v3l2 2'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* Color Input Enhancements */
+input[type="color"].form-control-color {
+    border-radius: 0.375rem;
+    border: 1px solid #ced4da;
+    cursor: pointer;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+input[type="color"].form-control-color:focus {
+    border-color: #86b7fe;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Number Input Enhancements */
+input[type="number"].form-control {
+    text-align: right;
+}
+
+input[type="number"].form-control::-webkit-outer-spin-button,
+input[type="number"].form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"].form-control[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Enhanced Form Field Styling */
+.form-field-enhanced {
+    transition: all 0.15s ease-in-out;
+}
+
+.form-field-enhanced:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Form Group Enhancements */
+.form-group-enhanced {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-group-enhanced .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.form-group-enhanced .form-label i {
+    margin-right: 0.5rem;
+    color: #6c757d;
+}
+
+/* Floating Labels for Date/Time Inputs */
+.form-floating > input[type="date"],
+.form-floating > input[type="time"],
+.form-floating > input[type="datetime-local"] {
+    padding-top: 1.625rem;
+    padding-bottom: 0.625rem;
+}
+
+.form-floating > input[type="date"]:focus ~ label,
+.form-floating > input[type="date"]:not(:placeholder-shown) ~ label,
+.form-floating > input[type="time"]:focus ~ label,
+.form-floating > input[type="time"]:not(:placeholder-shown) ~ label,
+.form-floating > input[type="datetime-local"]:focus ~ label,
+.form-floating > input[type="datetime-local"]:not(:placeholder-shown) ~ label {
+    opacity: 0.65;
+    transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+/* Date Range Picker Styling */
+.date-range-container {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+
+.date-range-container .form-group {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .date-range-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Calendar Widget Enhancements */
+.calendar-widget {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.calendar-widget .calendar-header {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+.calendar-widget .calendar-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calendar-widget .calendar-nav button {
+    background: none;
+    border: none;
+    color: #6c757d;
+    font-size: 1.25rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.calendar-widget .calendar-nav button:hover {
+    background: #e9ecef;
+    color: #495057;
+}
+
+/* Form Validation Enhancements */
+.was-validated .form-control:valid,
+.form-control.is-valid {
+    border-color: #198754;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='m2.3 6.73.94-.94 1.44 1.44L7.4 4.5l-.94-.94L4.07 6.06z'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+.was-validated .form-control:invalid,
+.form-control.is-invalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + 0.75rem);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 4.6 2.4 2.4M8.2 4.6l-2.4 2.4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right calc(0.375em + 0.1875rem) center;
+    background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+}
+
+/* Quick Date Buttons */
+.quick-date-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-date-buttons .btn {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Form Loading States */
+.form-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.form-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.form-loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 2rem;
+    height: 2rem;
+    margin: -1rem 0 0 -1rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 11;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Form Adjustments */
+@media (max-width: 576px) {
+    .form-field-enhanced {
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    input[type="date"].form-control,
+    input[type="time"].form-control {
+        background-size: 14px 10px;
+        padding-right: 2rem;
+    }
+    
+    input[type="date"].form-control::-webkit-calendar-picker-indicator {
+        width: 2rem;
+    }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    input[type="date"].form-control {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M1 4h14M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4M1 4V2a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2M5 2v2m6-2v2'/%3e%3c/svg%3e");
+    }
+    
+    input[type="time"].form-control {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23adb5bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM8 5v3l2 2'/%3e%3c/svg%3e");
+    }
+}

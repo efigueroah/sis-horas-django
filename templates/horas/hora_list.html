@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestión de Horas - Sistema de Gestión de Horas{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1><i class="fas fa-clock me-2"></i>Gestión de Horas</h1>
+            <a href="{% url 'horas:hora_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Registrar Horas
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros y Ordenamiento -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtros y Ordenamiento</h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="proyecto" class="form-label">Proyecto</label>
+                        <select name="proyecto" id="proyecto" class="form-select">
+                            <option value="">Todos los proyectos</option>
+                            {% for proyecto in proyectos %}
+                            <option value="{{ proyecto.id }}" {% if filtro_proyecto == proyecto.id|stringformat:"s" %}selected{% endif %}>
+                                {{ proyecto.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="fecha" class="form-label">Fecha</label>
+                        <input type="date" name="fecha" id="fecha" class="form-control" value="{{ filtro_fecha }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="orden" class="form-label">Ordenar por</label>
+                        <select name="orden" id="orden" class="form-select">
+                            <option value="fecha" {% if orden_actual == "fecha" %}selected{% endif %}>Fecha (ascendente)</option>
+                            <option value="proyecto" {% if orden_actual == "proyecto" %}selected{% endif %}>Proyecto</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                        <a href="{% url 'horas:hora_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Registros de Horas</h5>
+                <div class="text-end">
+                    {% if horas %}
+                    <div class="badge bg-success fs-6 mb-1">
+                        <i class="fas fa-clock me-1"></i>Total: {{ total_horas }}h
+                    </div>
+                    <br>
+                    <small class="text-muted">
+                        {% if is_paginated %}
+                            Mostrando {{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ paginator.count }} registros
+                        {% else %}
+                            {{ horas|length }} registro{{ horas|length|pluralize }}
+                        {% endif %}
+                    </small>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if horas %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Proyecto</th>
+                                <th>Horas</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hora in horas %}
+                            <tr>
+                                <td>{{ hora.fecha|date:"d/m/Y" }}</td>
+                                <td>
+                                    <strong>{{ hora.proyecto.nombre }}</strong>
+                                    {% if hora.proyecto.cliente %}
+                                    <br><small class="text-muted">{{ hora.proyecto.cliente }}</small>
+                                    {% endif %}
+                                </td>
+                                <td><span class="badge bg-primary">{{ hora.horas }}h</span></td>
+                                <td>
+                                    {% if hora.tipo_tarea == 'tarea' %}
+                                    <span class="badge bg-info"><i class="fas fa-tasks me-1"></i>Tarea</span>
+                                    {% else %}
+                                    <span class="badge bg-warning"><i class="fas fa-users me-1"></i>Reunión</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ hora.descripcion|truncatechars:50 }}</td>
+                                <td>
+                                    <a href="{% url 'horas:hora_detail' hora.pk %}" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'horas:hora_update' hora.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'horas:hora_delete' hora.pk %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                {% if is_paginated %}
+                <nav aria-label="Paginación de registros">
+                    <ul class="pagination justify-content-center mt-3">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.proyecto %}proyecto={{ request.GET.proyecto }}&{% endif %}{% if request.GET.fecha %}fecha={{ request.GET.fecha }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.proyecto %}proyecto={{ request.GET.proyecto }}&{% endif %}{% if request.GET.fecha %}fecha={{ request.GET.fecha }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.proyecto %}proyecto={{ request.GET.proyecto }}&{% endif %}{% if request.GET.fecha %}fecha={{ request.GET.fecha }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay registros de horas</h5>
+                    <p class="text-muted">
+                        {% if filtro_proyecto or filtro_fecha %}
+                            No se encontraron registros con los filtros aplicados.
+                            <br><a href="{% url 'horas:hora_list' %}" class="btn btn-link">Ver todos los registros</a>
+                        {% else %}
+                            Comienza registrando tus primeras horas de trabajo
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'horas:hora_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Registrar Horas
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-submit del formulario cuando cambian los filtros
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const selects = form.querySelectorAll('select');
+    const dateInput = form.querySelector('input[type="date"]');
+    
+    selects.forEach(select => {
+        select.addEventListener('change', function() {
+            form.submit();
+        });
+    });
+    
+    dateInput.addEventListener('change', function() {
+        form.submit();
+    });
+});
+</script>
+{% endblock %}

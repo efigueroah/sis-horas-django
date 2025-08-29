@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Proyecto - {{ object.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Confirmar Eliminación de Proyecto
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-warning me-2"></i>
+                        <strong>¡ATENCIÓN!</strong> Esta acción eliminará permanentemente el proyecto y todos sus datos asociados.
+                    </div>
+                    
+                    <p class="lead">¿Está seguro de que desea eliminar el siguiente proyecto?</p>
+                    
+                    <div class="card border-secondary">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">
+                                <i class="fas fa-project-diagram me-2" style="color: {{ object.color_hex }};"></i>
+                                Detalles del Proyecto
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <dl class="row">
+                                <dt class="col-sm-3">Nombre:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge fs-6" style="background-color: {{ object.color_hex }}; color: white;">
+                                        {{ object.nombre }}
+                                    </span>
+                                </dd>
+                                
+                                <dt class="col-sm-3">Cliente:</dt>
+                                <dd class="col-sm-9">
+                                    {% if object.cliente %}
+                                        <i class="fas fa-building text-primary me-1"></i>
+                                        {{ object.cliente }}
+                                    {% else %}
+                                        <span class="text-muted">Sin cliente asignado</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-3">Estado:</dt>
+                                <dd class="col-sm-9">
+                                    {% if object.activo %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-3">Fecha de Inicio:</dt>
+                                <dd class="col-sm-9">
+                                    {% if object.fecha_inicio %}
+                                        {{ object.fecha_inicio|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted">No definida</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-3">Fecha de Fin:</dt>
+                                <dd class="col-sm-9">
+                                    {% if object.fecha_fin %}
+                                        {{ object.fecha_fin|date:"d/m/Y" }}
+                                    {% else %}
+                                        <span class="text-muted">No definida</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                {% if object.descripcion %}
+                                <dt class="col-sm-3">Descripción:</dt>
+                                <dd class="col-sm-9">
+                                    <div class="border rounded p-2 bg-light">
+                                        {{ object.descripcion|linebreaks }}
+                                    </div>
+                                </dd>
+                                {% endif %}
+                            </dl>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6 class="text-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            Datos que se eliminarán permanentemente:
+                        </h6>
+                        <ul class="text-muted">
+                            <li><strong>Todos los registros de horas</strong> asociados a este proyecto</li>
+                            <li><strong>Información del proyecto</strong> (nombre, descripción, fechas, etc.)</li>
+                            <li><strong>Configuraciones específicas</strong> del proyecto</li>
+                            <li><strong>Historial de actividad</strong> relacionado</li>
+                        </ul>
+                        
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Nota:</strong> Los reportes ya generados que incluyan este proyecto no se verán afectados, 
+                            pero no podrá generar nuevos reportes con estos datos.
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics if available -->
+                    {% if total_horas or total_registros %}
+                    <div class="mt-4">
+                        <h6 class="text-info">
+                            <i class="fas fa-chart-bar me-1"></i>
+                            Estadísticas del proyecto:
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-body text-center">
+                                        <h4 class="text-primary">{{ total_horas|default:"0" }}</h4>
+                                        <small class="text-muted">Horas registradas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-info">
+                                    <div class="card-body text-center">
+                                        <h4 class="text-primary">{{ total_registros|default:"0" }}</h4>
+                                        <small class="text-muted">Registros de tiempo</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{% url 'proyectos:proyecto_detail' object.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Cancelar
+                    </a>
+                    <div>
+                        <a href="{% url 'proyectos:proyecto_list' %}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-list me-1"></i>
+                            Volver a Proyectos
+                        </a>
+                        <form method="post" class="d-inline" id="deleteForm">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>
+                                Sí, Eliminar Proyecto
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteForm = document.getElementById('deleteForm');
+    
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Double confirmation for project deletion
+            const projectName = '{{ object.nombre }}';
+            const confirmed = confirm(
+                `¿Está COMPLETAMENTE seguro de eliminar el proyecto "${projectName}"?\n\n` +
+                'Esta acción eliminará:\n' +
+                '• Todos los registros de horas\n' +
+                '• Toda la información del proyecto\n' +
+                '• Configuraciones asociadas\n\n' +
+                'Esta acción NO SE PUEDE DESHACER.\n\n' +
+                'Escriba "ELIMINAR" para confirmar:'
+            );
+            
+            if (confirmed) {
+                const finalConfirm = prompt(
+                    'Para confirmar la eliminación, escriba exactamente: ELIMINAR'
+                );
+                
+                if (finalConfirm === 'ELIMINAR') {
+                    // Show loading state
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Eliminando...';
+                    submitBtn.disabled = true;
+                    
+                    // Submit the form
+                    this.submit();
+                } else {
+                    alert('Confirmación incorrecta. El proyecto no ha sido eliminado.');
+                }
+            }
+        });
+    }
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // ESC to cancel
+        if (e.key === 'Escape') {
+            window.location.href = '{% url "proyectos:proyecto_detail" object.pk %}';
+        }
+    });
+    
+    // Highlight dangerous action
+    const dangerButton = document.querySelector('.btn-danger');
+    if (dangerButton) {
+        let blinkInterval;
+        
+        dangerButton.addEventListener('mouseenter', function() {
+            blinkInterval = setInterval(() => {
+                this.style.opacity = this.style.opacity === '0.5' ? '1' : '0.5';
+            }, 500);
+        });
+        
+        dangerButton.addEventListener('mouseleave', function() {
+            clearInterval(blinkInterval);
+            this.style.opacity = '1';
+        });
+    }
+});
+</script>
+{% endblock %}

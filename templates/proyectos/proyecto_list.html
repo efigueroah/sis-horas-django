@@ -1,0 +1,464 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gestión de Proyectos - Sistema de Gestión de Horas{% endblock %}
+
+{% block extra_css %}
+<style>
+    .project-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid;
+    }
+    
+    .project-card.active {
+        border-left-color: #28a745;
+    }
+    
+    .project-card.inactive {
+        border-left-color: #6c757d;
+        opacity: 0.8;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .filter-section {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .section-header {
+        border-bottom: 2px solid;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-header.active {
+        border-color: #28a745;
+        color: #28a745;
+    }
+    
+    .section-header.inactive {
+        border-color: #6c757d;
+        color: #6c757d;
+    }
+    
+    .project-stats {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        display: block;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-project-diagram text-primary me-2"></i>
+                        Gestión de Proyectos
+                    </h1>
+                    <p class="text-muted mb-0">Administra tus proyectos y su estado</p>
+                </div>
+                <div>
+                    <a href="{% url 'proyectos:proyecto_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Nuevo Proyecto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="project-stats">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <span class="stat-number" id="total-proyectos">{{ proyectos|length }}</span>
+                            <span class="stat-label">Total Proyectos</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <span class="stat-number" id="proyectos-activos">{{ proyectos_activos|length }}</span>
+                            <span class="stat-label">Activos</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <span class="stat-number" id="proyectos-inactivos">{{ proyectos_inactivos|length }}</span>
+                            <span class="stat-label">Inactivos</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <span class="stat-number" id="proyectos-filtrados">{{ proyectos|length }}</span>
+                            <span class="stat-label">Mostrados</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filter-section">
+                <h5 class="mb-3">
+                    <i class="fas fa-filter me-2"></i>
+                    Filtros de Búsqueda
+                </h5>
+                <form method="get" id="filterForm">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="nombre" class="form-label">Nombre del Proyecto</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nombre" 
+                                   name="nombre" 
+                                   value="{{ request.GET.nombre }}"
+                                   placeholder="Buscar por nombre..."
+                                   autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="cliente" class="form-label">Cliente</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="cliente" 
+                                   name="cliente" 
+                                   value="{{ request.GET.cliente }}"
+                                   placeholder="Buscar por cliente..."
+                                   autocomplete="off">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado" name="estado">
+                                <option value="">Todos los estados</option>
+                                <option value="activo" {% if request.GET.estado == 'activo' %}selected{% endif %}>Solo Activos</option>
+                                <option value="inactivo" {% if request.GET.estado == 'inactivo' %}selected{% endif %}>Solo Inactivos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Filtrar
+                            </button>
+                            <a href="{% url 'proyectos:proyecto_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% if proyectos %}
+        <!-- Proyectos Activos -->
+        {% if proyectos_activos %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="section-header active">
+                    <i class="fas fa-play-circle me-2"></i>
+                    Proyectos Activos ({{ proyectos_activos|length }})
+                </h4>
+                <div class="row">
+                    {% for proyecto in proyectos_activos %}
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="card project-card active h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-truncate" title="{{ proyecto.nombre }}">
+                                    {{ proyecto.nombre }}
+                                </h6>
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle me-1"></i>Activo
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                {% if proyecto.cliente %}
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-building me-1"></i>
+                                    <strong>Cliente:</strong> {{ proyecto.cliente }}
+                                </p>
+                                {% endif %}
+                                
+                                {% if proyecto.descripcion %}
+                                <p class="small mb-3">{{ proyecto.descripcion|truncatechars:120 }}</p>
+                                {% endif %}
+                                
+                                <div class="row text-center mb-3">
+                                    {% if proyecto.fecha_inicio %}
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Inicio</small>
+                                        <small class="fw-bold">{{ proyecto.fecha_inicio|date:"d/m/Y" }}</small>
+                                    </div>
+                                    {% endif %}
+                                    {% if proyecto.fecha_fin %}
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Fin</small>
+                                        <small class="fw-bold">{{ proyecto.fecha_fin|date:"d/m/Y" }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'proyectos:proyecto_detail' proyecto.pk %}" 
+                                           class="btn btn-outline-info btn-sm" 
+                                           title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'proyectos:proyecto_update' proyecto.pk %}" 
+                                           class="btn btn-outline-primary btn-sm" 
+                                           title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                    <button onclick="toggleProyecto({{ proyecto.pk }}, '{{ proyecto.nombre|escapejs }}')" 
+                                            class="btn btn-outline-warning btn-sm" 
+                                            title="Desactivar proyecto">
+                                        <i class="fas fa-pause me-1"></i>Desactivar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Proyectos Inactivos -->
+        {% if proyectos_inactivos %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="section-header inactive">
+                    <i class="fas fa-pause-circle me-2"></i>
+                    Proyectos Inactivos ({{ proyectos_inactivos|length }})
+                </h4>
+                <div class="row">
+                    {% for proyecto in proyectos_inactivos %}
+                    <div class="col-lg-4 col-md-6 mb-3">
+                        <div class="card project-card inactive h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-truncate" title="{{ proyecto.nombre }}">
+                                    {{ proyecto.nombre }}
+                                </h6>
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-pause-circle me-1"></i>Inactivo
+                                </span>
+                            </div>
+                            <div class="card-body">
+                                {% if proyecto.cliente %}
+                                <p class="text-muted mb-2">
+                                    <i class="fas fa-building me-1"></i>
+                                    <strong>Cliente:</strong> {{ proyecto.cliente }}
+                                </p>
+                                {% endif %}
+                                
+                                {% if proyecto.descripcion %}
+                                <p class="small mb-3">{{ proyecto.descripcion|truncatechars:120 }}</p>
+                                {% endif %}
+                                
+                                <div class="row text-center mb-3">
+                                    {% if proyecto.fecha_inicio %}
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Inicio</small>
+                                        <small class="fw-bold">{{ proyecto.fecha_inicio|date:"d/m/Y" }}</small>
+                                    </div>
+                                    {% endif %}
+                                    {% if proyecto.fecha_fin %}
+                                    <div class="col-6">
+                                        <small class="text-muted d-block">Fin</small>
+                                        <small class="fw-bold">{{ proyecto.fecha_fin|date:"d/m/Y" }}</small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'proyectos:proyecto_detail' proyecto.pk %}" 
+                                           class="btn btn-outline-info btn-sm" 
+                                           title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'proyectos:proyecto_update' proyecto.pk %}" 
+                                           class="btn btn-outline-primary btn-sm" 
+                                           title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </div>
+                                    <button onclick="toggleProyecto({{ proyecto.pk }}, '{{ proyecto.nombre|escapejs }}')" 
+                                            class="btn btn-outline-success btn-sm" 
+                                            title="Activar proyecto">
+                                        <i class="fas fa-play me-1"></i>Activar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <!-- Sin proyectos -->
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-project-diagram fa-4x text-muted mb-3"></i>
+                    <h4 class="text-muted">No hay proyectos</h4>
+                    {% if request.GET.nombre or request.GET.cliente or request.GET.estado %}
+                    <p class="text-muted">No se encontraron proyectos que coincidan con los filtros aplicados.</p>
+                    <a href="{% url 'proyectos:proyecto_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-times me-1"></i>Limpiar Filtros
+                    </a>
+                    {% else %}
+                    <p class="text-muted">Comienza creando tu primer proyecto.</p>
+                    <a href="{% url 'proyectos:proyecto_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Crear Primer Proyecto
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Token CSRF para AJAX -->
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtrado en tiempo real
+    const nombreInput = document.getElementById('nombre');
+    const clienteInput = document.getElementById('cliente');
+    
+    let filterTimeout;
+    
+    function applyFilters() {
+        clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(() => {
+            document.getElementById('filterForm').submit();
+        }, 500);
+    }
+    
+    if (nombreInput) {
+        nombreInput.addEventListener('input', applyFilters);
+    }
+    
+    if (clienteInput) {
+        clienteInput.addEventListener('input', applyFilters);
+    }
+    
+    // Actualizar contador de proyectos filtrados
+    updateFilteredCount();
+});
+
+function toggleProyecto(proyectoId, proyectoNombre) {
+    if (!confirm(`¿Está seguro de cambiar el estado del proyecto "${proyectoNombre}"?`)) {
+        return;
+    }
+    
+    // Mostrar loading
+    const button = event.target.closest('button');
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    button.disabled = true;
+    
+    fetch(`{% url 'proyectos:proyecto_toggle' 0 %}`.replace('0', proyectoId), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mostrar mensaje de éxito
+            showAlert(`Proyecto "${proyectoNombre}" ${data.activo ? 'activado' : 'desactivado'} exitosamente`, 'success');
+            
+            // Recargar página después de un breve delay
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showAlert(`Error al cambiar estado del proyecto: ${data.error || 'Error desconocido'}`, 'danger');
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('Error de conexión al cambiar estado del proyecto', 'danger');
+        button.innerHTML = originalContent;
+        button.disabled = false;
+    });
+}
+
+function showAlert(message, type) {
+    // Crear alerta Bootstrap
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+function updateFilteredCount() {
+    const totalCards = document.querySelectorAll('.project-card').length;
+    const filteredCounter = document.getElementById('proyectos-filtrados');
+    if (filteredCounter) {
+        filteredCounter.textContent = totalCards;
+    }
+}
+</script>
+{% endblock %}

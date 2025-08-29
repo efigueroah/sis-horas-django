@@ -1,0 +1,619 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Registrar Horas - Sistema de Gestión de Horas{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="{% static 'css/hours-widget.css' %}" rel="stylesheet">
+<style>
+.select2-container--default .select2-selection--single {
+    height: 38px;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 36px;
+    padding-left: 12px;
+}
+.registro-item {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: #f8f9fa;
+}
+.registro-item.active {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+.limite-diario {
+    background: #e8f5e8;
+    border: 1px solid #c3e6cb;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+.progress-horas {
+    height: 8px;
+    margin-top: 0.5rem;
+}
+.btn-group-vertical .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+.registro-item .row {
+    align-items: end;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>Registrar Horas de Trabajo
+                </h5>
+            </div>
+            <div class="card-body">
+                {% csrf_token %}
+                <!-- Selector de Fecha y Límite Diario -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="fecha_trabajo" class="form-label">Fecha de Trabajo</label>
+                        <input type="date" id="fecha_trabajo" class="form-control" max="{{ today }}">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="limite-diario">
+                            <div class="d-flex justify-content-between">
+                                <span><strong>Límite Diario:</strong> <span id="limite-max">{{ limite_diario }}</span>h</span>
+                                <span><strong>Registrado:</strong> <span id="horas-registradas">0.0</span>h</span>
+                            </div>
+                            <div class="progress progress-horas">
+                                <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Disponible: <span id="horas-disponibles">{{ limite_diario }}</span>h</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registros Existentes -->
+                <div id="registros-existentes" style="display: none;">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Registros Existentes del Día</h6>
+                        <div id="lista-existentes"></div>
+                    </div>
+                </div>
+
+                <!-- Registros Múltiples -->
+                <div id="registros-container">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6><i class="fas fa-list me-2"></i>Registros del Día</h6>
+                        <button type="button" id="agregar-registro" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Agregar Registro
+                        </button>
+                    </div>
+                    
+                    <!-- Template de registro -->
+                    <div id="registro-template" class="registro-item" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">Registro <span class="registro-numero">1</span></h6>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label">Proyecto</label>
+                                <select class="form-select proyecto-select proyecto-searchable" name="proyecto" required>
+                                    <option value="">Seleccionar proyecto...</option>
+                                    {% for proyecto in proyectos %}
+                                    <option value="{{ proyecto.id }}">{{ proyecto.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Horas</label>
+                                <input type="number" class="form-control horas-input" name="horas"
+                                       min="{{ horas_minimas }}" max="{{ horas_maximas }}" 
+                                       step="{{ incremento_horas }}" value="{{ horas_minimas }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Tipo</label>
+                                <select class="form-select tipo-select" name="tipo_tarea" required>
+                                    <option value="tarea">Tarea</option>
+                                    <option value="reunion">Reunión</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Descripción</label>
+                                <input type="text" class="form-control descripcion-input" name="descripcion"
+                                       placeholder="Descripción breve..." required>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <div class="btn-group-vertical w-100">
+                                    <button type="button" class="btn btn-sm btn-outline-success agregar-registro mb-1" title="Agregar registro">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger eliminar-registro" title="Eliminar registro">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contenedor de registros activos -->
+                    <div id="registros-activos"></div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'horas:hora_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                    <button type="button" id="guardar-registros" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Guardar Registros
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let registroCounter = 0;
+    let limiteDiario = parseFloat('{{ limite_diario|default:"8.0" }}'.replace(',', '.')) || 8.0;
+    let horasRegistradas = 0.0;
+    
+    // Configuración de horas desde el backend
+    const configHoras = {
+        minimo: parseFloat('{{ horas_minimas|default:"0.5" }}') || 0.5,
+        maximo: parseFloat('{{ horas_maximas|default:"12.0" }}') || 12.0,
+        incremento: parseFloat('{{ incremento_horas|default:"0.5" }}') || 0.5
+    };
+    
+    const fechaInput = document.getElementById('fecha_trabajo');
+    const registrosContainer = document.getElementById('registros-activos');
+    const agregarBtn = document.getElementById('agregar-registro');
+    const guardarBtn = document.getElementById('guardar-registros');
+    
+    // Verificar que los elementos existen
+    if (!fechaInput || !registrosContainer || !agregarBtn || !guardarBtn) {
+        console.error('Elementos del DOM no encontrados');
+        return;
+    }
+    
+    // Establecer fecha actual por defecto
+    fechaInput.value = new Date().toISOString().split('T')[0];
+    
+    // Cargar límite diario y registros existentes
+    async function cargarDatosDia() {
+        const fecha = fechaInput.value;
+        if (!fecha) return;
+        
+        try {
+            const response = await fetch(`/horas/api/fecha/${fecha}/`);
+            const data = await response.json();
+            
+            // Calcular horas ya registradas
+            horasRegistradas = data.reduce((total, registro) => total + parseFloat(registro.horas), 0);
+            
+            // Mostrar registros existentes
+            mostrarRegistrosExistentes(data);
+            
+            actualizarLimiteDiario();
+            
+        } catch (error) {
+            console.error('Error al cargar datos:', error);
+            // Ocultar registros existentes si hay error
+            document.getElementById('registros-existentes').style.display = 'none';
+        }
+    }
+    
+    function mostrarRegistrosExistentes(registros) {
+        const container = document.getElementById('registros-existentes');
+        const lista = document.getElementById('lista-existentes');
+        
+        if (registros.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        let html = '<div class="table-responsive"><table class="table table-sm mb-0">';
+        html += '<thead><tr><th>Proyecto</th><th>Horas</th><th>Tipo</th><th>Descripción</th></tr></thead><tbody>';
+        
+        registros.forEach(registro => {
+            const tipoIcon = registro.tipo_tarea === 'tarea' ? 'fas fa-tasks' : 'fas fa-users';
+            const tipoBadge = registro.tipo_tarea === 'tarea' ? 'bg-info' : 'bg-warning';
+            
+            html += `
+                <tr>
+                    <td><strong>${registro.proyecto}</strong></td>
+                    <td><span class="badge bg-primary">${registro.horas}h</span></td>
+                    <td><span class="badge ${tipoBadge}"><i class="${tipoIcon} me-1"></i>${registro.tipo_tarea}</span></td>
+                    <td>${registro.descripcion || '-'}</td>
+                </tr>
+            `;
+        });
+        
+        html += '</tbody></table></div>';
+        html += `<small class="text-muted mt-2 d-block">Total existente: <strong>${horasRegistradas.toFixed(1)}h</strong></small>`;
+        
+        lista.innerHTML = html;
+        container.style.display = 'block';
+    }
+    
+    function actualizarLimiteDiario() {
+        const disponible = limiteDiario - horasRegistradas;
+        const porcentaje = (horasRegistradas / limiteDiario) * 100;
+        
+        document.getElementById('horas-registradas').textContent = horasRegistradas.toFixed(1);
+        document.getElementById('horas-disponibles').textContent = disponible.toFixed(1);
+        document.getElementById('progress-bar').style.width = `${Math.min(porcentaje, 100)}%`;
+        
+        // Cambiar color si se acerca al límite
+        const progressBar = document.getElementById('progress-bar');
+        if (porcentaje >= 100) {
+            progressBar.className = 'progress-bar bg-danger';
+        } else if (porcentaje >= 80) {
+            progressBar.className = 'progress-bar bg-warning';
+        } else {
+            progressBar.className = 'progress-bar bg-success';
+        }
+        
+        // Deshabilitar agregar si no hay espacio
+        agregarBtn.disabled = disponible <= 0;
+    }
+    
+    function crearRegistro() {
+        registroCounter++;
+        const template = document.getElementById('registro-template');
+        const nuevoRegistro = template.cloneNode(true);
+        
+        nuevoRegistro.id = `registro-${registroCounter}`;
+        nuevoRegistro.style.display = 'block';
+        nuevoRegistro.classList.add('active');
+        
+        // Actualizar número
+        nuevoRegistro.querySelector('.registro-numero').textContent = registroCounter;
+        
+        // Aplicar búsqueda al nuevo selector de proyecto
+        setTimeout(() => {
+            const proyectoSelect = nuevoRegistro.querySelector('.proyecto-select');
+            if (proyectoSelect && window.proyectosData && !proyectoSelect.dataset.converted) {
+                convertToSearchable(proyectoSelect);
+            }
+        }, 100);
+        
+        // Configurar eventos
+        const agregarBtn = nuevoRegistro.querySelector('.agregar-registro');
+        const eliminarBtn = nuevoRegistro.querySelector('.eliminar-registro');
+        const horasInput = nuevoRegistro.querySelector('.horas-input');
+        
+        agregarBtn.addEventListener('click', () => crearRegistro());
+        eliminarBtn.addEventListener('click', () => eliminarRegistro(nuevoRegistro.id));
+        horasInput.addEventListener('input', calcularTotalHoras);
+        
+        // Validación en tiempo real para horas
+        horasInput.addEventListener('blur', function() {
+            const valor = parseFloat(this.value);
+            if (isNaN(valor) || valor < configHoras.minimo) {
+                this.value = configHoras.minimo.toFixed(2);
+            } else if (valor > configHoras.maximo) {
+                this.value = configHoras.maximo.toFixed(2);
+            } else {
+                // Redondear al múltiplo del incremento más cercano
+                const redondeado = Math.round(valor / configHoras.incremento) * configHoras.incremento;
+                this.value = redondeado.toFixed(2);
+            }
+            calcularTotalHoras();
+        });
+        
+        registrosContainer.appendChild(nuevoRegistro);
+        
+        // Enfocar primer campo
+        nuevoRegistro.querySelector('.proyecto-select').focus();
+        
+        return nuevoRegistro;
+    }
+    
+    function eliminarRegistro(registroId) {
+        const registro = document.getElementById(registroId);
+        if (registro) {
+            registro.remove();
+            calcularTotalHoras();
+        }
+    }
+    
+    function calcularTotalHoras() {
+        const horasInputs = registrosContainer.querySelectorAll('.horas-input');
+        let totalNuevo = 0;
+        
+        horasInputs.forEach(input => {
+            const valor = parseFloat(input.value) || 0;
+            totalNuevo += valor;
+        });
+        
+        const totalConExistentes = horasRegistradas + totalNuevo;
+        const disponible = limiteDiario - totalConExistentes;
+        const porcentaje = (totalConExistentes / limiteDiario) * 100;
+        
+        // Actualizar visualización temporal
+        document.getElementById('progress-bar').style.width = `${Math.min(porcentaje, 100)}%`;
+        
+        // Validar límite
+        if (totalConExistentes > limiteDiario) {
+            guardarBtn.disabled = true;
+            guardarBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Excede Límite';
+            guardarBtn.className = 'btn btn-danger';
+        } else {
+            guardarBtn.disabled = false;
+            guardarBtn.innerHTML = '<i class="fas fa-save me-1"></i>Guardar Registros';
+            guardarBtn.className = 'btn btn-primary';
+        }
+    }
+    
+    async function guardarRegistros() {
+        const fecha = fechaInput.value;
+        if (!fecha) {
+            alert('Seleccione una fecha');
+            return;
+        }
+        
+        const registros = [];
+        const registroItems = registrosContainer.querySelectorAll('.registro-item');
+        
+        // Validar y recopilar datos
+        for (const item of registroItems) {
+            const proyecto = item.querySelector('.proyecto-select').value;
+            const horasValue = item.querySelector('.horas-input').value;
+            const tipo = item.querySelector('.tipo-select').value;
+            const descripcion = item.querySelector('.descripcion-input').value;
+            
+            if (!proyecto || !horasValue || !descripcion) {
+                alert('Complete todos los campos requeridos');
+                return;
+            }
+            
+            const horas = parseFloat(horasValue);
+            
+            // Validar formato de horas (múltiplos del incremento configurado)
+            if (horas < configHoras.minimo || horas > configHoras.maximo || 
+                (horas / configHoras.incremento) % 1 !== 0) {
+                alert(`Las horas deben ser múltiplos de ${configHoras.incremento} (entre ${configHoras.minimo} y ${configHoras.maximo} horas)`);
+                return;
+            }
+            
+            registros.push({ fecha, proyecto, horas, tipo_tarea: tipo, descripcion });
+        }
+        
+        if (registros.length === 0) {
+            alert('Agregue al menos un registro');
+            return;
+        }
+        
+        // Guardar en lote
+        try {
+            guardarBtn.disabled = true;
+            guardarBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+            
+            // Obtener CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+            
+            if (!csrfToken) {
+                alert('Error: Token CSRF no encontrado. Recargue la página.');
+                return;
+            }
+            
+            const promises = registros.map(registro => 
+                fetch('/api/horas/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify(registro)
+                })
+            );
+            
+            const responses = await Promise.all(promises);
+            
+            // Verificar respuestas
+            const results = [];
+            for (const response of responses) {
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`Error HTTP ${response.status}: ${errorText}`);
+                }
+                const result = await response.json();
+                results.push(result);
+            }
+            
+            // Verificar resultados
+            const errores = results.filter(r => !r.success);
+            if (errores.length > 0) {
+                console.error('Errores en registros:', errores);
+                alert(`Error en ${errores.length} registro(s): ${errores[0].error || 'Error desconocido'}`);
+                return;
+            }
+            
+            // Éxito
+            alert(`${registros.length} registro(s) guardado(s) exitosamente`);
+            window.location.href = '{% url "horas:hora_list" %}';
+            
+        } catch (error) {
+            console.error('Error completo:', error);
+            alert(`Error al guardar los registros: ${error.message}`);
+        } finally {
+            guardarBtn.disabled = false;
+            guardarBtn.innerHTML = '<i class="fas fa-save me-1"></i>Guardar Registros';
+        }
+    }
+    
+    // Event Listeners
+    fechaInput.addEventListener('change', cargarDatosDia);
+    agregarBtn.addEventListener('click', crearRegistro);
+    guardarBtn.addEventListener('click', guardarRegistros);
+    
+    // Inicializar
+    // Establecer fecha desde parámetro URL o fecha actual
+    const urlParams = new URLSearchParams(window.location.search);
+    const fechaParam = urlParams.get('fecha');
+    if (fechaParam) {
+        fechaInput.value = fechaParam;
+    } else {
+        fechaInput.value = '{{ today }}';
+    }
+    
+    // Mejorar selectores de proyecto con búsqueda
+    initProyectoSearchable();
+    
+    cargarDatosDia();
+    crearRegistro(); // Crear primer registro por defecto
+    
+    function initProyectoSearchable() {
+        // Cargar proyectos favoritos una vez
+        fetch('/proyectos/api/favoritos/')
+            .then(response => response.json())
+            .then(data => {
+                window.proyectosData = data;
+                console.log('Proyectos cargados:', data);
+                // Aplicar a selectores existentes
+                document.querySelectorAll('.proyecto-searchable:not([data-converted])').forEach(select => {
+                    convertToSearchable(select);
+                });
+            })
+            .catch(error => {
+                console.error('Error cargando proyectos:', error);
+                window.proyectosData = null;
+            });
+    }
+    
+    function convertToSearchable(selectElement) {
+        if (!window.proyectosData || selectElement.dataset.converted) {
+            console.log('Saltando conversión:', !window.proyectosData ? 'sin datos' : 'ya convertido');
+            return;
+        }
+        
+        console.log('Convirtiendo selector a búsqueda');
+        selectElement.dataset.converted = 'true';
+        const { favoritos, todos } = window.proyectosData;
+        
+        // Crear contenedor de búsqueda
+        const container = document.createElement('div');
+        container.className = 'proyecto-search-container position-relative';
+        
+        const searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'form-control';
+        searchInput.placeholder = 'Buscar proyecto...';
+        
+        const optionsList = document.createElement('div');
+        optionsList.className = 'proyecto-options list-group position-absolute w-100';
+        optionsList.style.cssText = 'z-index: 1050; max-height: 200px; overflow-y: auto; display: none; background: white; border: 1px solid #dee2e6;';
+        
+        // Reemplazar select
+        selectElement.style.display = 'none';
+        selectElement.parentNode.insertBefore(container, selectElement);
+        container.appendChild(searchInput);
+        container.appendChild(optionsList);
+        
+        function renderOptions(query = '') {
+            optionsList.innerHTML = '';
+            
+            const filtered = todos.filter(p => 
+                p.nombre.toLowerCase().includes(query.toLowerCase()) ||
+                p.cliente.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            // Favoritos primero
+            if (query === '' && favoritos.length > 0) {
+                const favHeader = document.createElement('div');
+                favHeader.className = 'list-group-item bg-light fw-bold small';
+                favHeader.textContent = '⭐ Favoritos';
+                optionsList.appendChild(favHeader);
+                
+                favoritos.forEach(proyecto => {
+                    optionsList.appendChild(createOption(proyecto, true));
+                });
+                
+                if (filtered.length > favoritos.length) {
+                    const separator = document.createElement('div');
+                    separator.className = 'list-group-item bg-light fw-bold small';
+                    separator.textContent = 'Todos';
+                    optionsList.appendChild(separator);
+                }
+            }
+            
+            // Resto de proyectos
+            filtered.filter(p => !favoritos.some(f => f.id === p.id))
+                   .forEach(proyecto => {
+                       optionsList.appendChild(createOption(proyecto, false));
+                   });
+        }
+        
+        function createOption(proyecto, esFavorito) {
+            const option = document.createElement('a');
+            option.className = 'list-group-item list-group-item-action py-2';
+            option.href = '#';
+            option.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-bold">${proyecto.nombre}</div>
+                        <small class="text-muted">${proyecto.cliente}</small>
+                    </div>
+                    ${esFavorito ? '<span class="badge bg-warning">⭐</span>' : ''}
+                </div>
+            `;
+            
+            option.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Proyecto seleccionado:', proyecto.nombre);
+                searchInput.value = proyecto.nombre;
+                selectElement.value = proyecto.id;
+                optionsList.style.display = 'none';
+                
+                // Disparar evento change
+                const changeEvent = new Event('change', { bubbles: true });
+                selectElement.dispatchEvent(changeEvent);
+            });
+            
+            return option;
+        }
+        
+        // Event listeners
+        searchInput.addEventListener('input', (e) => {
+            renderOptions(e.target.value);
+            optionsList.style.display = 'block';
+        });
+        
+        searchInput.addEventListener('focus', () => {
+            renderOptions(searchInput.value);
+            optionsList.style.display = 'block';
+        });
+        
+        // Cerrar al hacer clic fuera
+        const closeHandler = (e) => {
+            if (!container.contains(e.target)) {
+                optionsList.style.display = 'none';
+            }
+        };
+        
+        document.addEventListener('click', closeHandler);
+        
+        // Limpiar event listener cuando se elimine el elemento
+        container.addEventListener('DOMNodeRemoved', () => {
+            document.removeEventListener('click', closeHandler);
+        });
+        
+        renderOptions();
+    }
+});
+</script>
+{% endblock %}

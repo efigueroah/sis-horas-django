@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Widget Calendario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    {% load static %}
+    <link href="{% static 'css/multi-date-calendar.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Prueba del Widget de Calendario Multi-fecha
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Esta es una página de prueba para verificar que el widget de calendario funciona correctamente.
+                        </div>
+                        
+                        <!-- Widget de Calendario -->
+                        <div id="multiDateCalendar" class="mb-4"></div>
+                        
+                        <!-- Campo para mostrar fechas seleccionadas -->
+                        <div class="mb-3">
+                            <label for="selectedDatesField" class="form-label">Fechas Seleccionadas:</label>
+                            <input type="text" id="selectedDatesField" class="form-control" readonly>
+                        </div>
+                        
+                        <!-- Botones de prueba -->
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-primary" onclick="testSelectToday()">
+                                <i class="fas fa-calendar-day me-1"></i>Seleccionar Hoy
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="testSelectWeekdays()">
+                                <i class="fas fa-business-time me-1"></i>Días Laborales
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="testClearAll()">
+                                <i class="fas fa-trash me-1"></i>Limpiar Todo
+                            </button>
+                        </div>
+                        
+                        <!-- Log de debug -->
+                        <div class="mt-4">
+                            <h6>Log de Debug:</h6>
+                            <div id="debugLog" class="border p-3 bg-light" style="height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.875rem;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'js/multi-date-calendar.js' %}"></script>
+    <script>
+        let calendar;
+        
+        function log(message) {
+            const logDiv = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Página cargada, inicializando calendario...');
+            
+            try {
+                // Verificar que la clase existe
+                if (typeof MultiDateCalendar === 'undefined') {
+                    log('ERROR: Clase MultiDateCalendar no está definida');
+                    return;
+                }
+                
+                log('Clase MultiDateCalendar encontrada');
+                
+                // Inicializar calendario
+                calendar = new MultiDateCalendar('multiDateCalendar', {
+                    minDate: new Date(),
+                    maxDate: new Date(new Date().getFullYear() + 1, 11, 31),
+                    onChange: function(selectedDates) {
+                        log(`Fechas seleccionadas: ${selectedDates.join(', ')}`);
+                        document.getElementById('selectedDatesField').value = selectedDates.join(', ');
+                    }
+                });
+                
+                log('Calendario inicializado exitosamente');
+                
+            } catch (error) {
+                log(`ERROR al inicializar calendario: ${error.message}`);
+                console.error('Error completo:', error);
+            }
+        });
+        
+        function testSelectToday() {
+            if (calendar) {
+                const today = new Date().toISOString().split('T')[0];
+                calendar.addDate(today);
+                log(`Agregada fecha de hoy: ${today}`);
+            } else {
+                log('ERROR: Calendario no inicializado');
+            }
+        }
+        
+        function testSelectWeekdays() {
+            if (calendar) {
+                calendar.selectWeekdaysInMonth();
+                log('Seleccionados días laborales del mes');
+            } else {
+                log('ERROR: Calendario no inicializado');
+            }
+        }
+        
+        function testClearAll() {
+            if (calendar) {
+                calendar.clearAllDates();
+                log('Todas las fechas limpiadas');
+            } else {
+                log('ERROR: Calendario no inicializado');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+/**
+ * Estilos para el Widget de Calendario de Selección Múltiple
+ */
+
+.multi-date-calendar {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    background: white;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    overflow: hidden;
+}
+
+/* Header del calendario */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.calendar-title {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    flex-grow: 1;
+    text-align: center;
+}
+
+/* Grid del calendario */
+.calendar-grid {
+    padding: 0;
+}
+
+.calendar-days-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #e9ecef;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.day-header {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #6c757d;
+    border-right: 1px solid #dee2e6;
+}
+
+.day-header:last-child {
+    border-right: none;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+/* Días del calendario */
+.calendar-day {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+    min-height: 50px;
+}
+
+.calendar-day:last-child {
+    border-right: none;
+}
+
+.calendar-day:hover:not(.disabled) {
+    background: #e3f2fd;
+    transform: scale(1.05);
+    z-index: 1;
+}
+
+.day-number {
+    font-weight: 500;
+    font-size: 0.9rem;
+    z-index: 2;
+}
+
+/* Estados de los días */
+.calendar-day.other-month {
+    color: #adb5bd;
+    background: #f8f9fa;
+}
+
+.calendar-day.other-month:hover:not(.disabled) {
+    background: #e9ecef;
+}
+
+.calendar-day.today {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    font-weight: 700;
+}
+
+.calendar-day.today .day-number {
+    color: #856404;
+}
+
+.calendar-day.selected {
+    background: #007bff !important;
+    color: white !important;
+    font-weight: 700;
+}
+
+.calendar-day.selected .day-number {
+    color: white;
+}
+
+.calendar-day.disabled {
+    background: #f8f9fa;
+    color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.calendar-day.weekend:not(.selected) {
+    background: #fff5f5;
+    color: #dc3545;
+}
+
+.calendar-day.holiday:not(.selected) {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Iconos en los días */
+.selected-icon {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.7rem;
+    color: white;
+}
+
+.holiday-icon {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: 0.6rem;
+    color: #ffc107;
+}
+
+/* Footer del calendario */
+.calendar-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.selected-count {
+    display: flex;
+    align-items: center;
+}
+
+.calendar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .calendar-header {
+        padding: 0.75rem;
+    }
+    
+    .calendar-title {
+        font-size: 1rem;
+    }
+    
+    .day-header {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .calendar-day {
+        min-height: 40px;
+    }
+    
+    .day-number {
+        font-size: 0.8rem;
+    }
+    
+    .calendar-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .calendar-actions {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-day {
+        min-height: 35px;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
+    }
+    
+    .selected-icon,
+    .holiday-icon {
+        font-size: 0.6rem;
+    }
+}
+
+/* Animaciones */
+@keyframes selectDate {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.calendar-day.selected {
+    animation: selectDate 0.3s ease;
+}
+
+/* Tooltips mejorados */
+.calendar-day[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Estados de carga */
+.multi-date-calendar.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.multi-date-calendar.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2rem;
+    height: 2rem;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1000;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Tema oscuro (opcional) */
+@media (prefers-color-scheme: dark) {
+    .multi-date-calendar {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .calendar-header,
+    .calendar-footer {
+        background: #1a202c;
+        border-color: #4a5568;
+    }
+    
+    .calendar-title {
+        color: #e2e8f0;
+    }
+    
+    .calendar-days-header {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+    
+    .day-header {
+        color: #a0aec0;
+        border-color: #4a5568;
+    }
+    
+    .calendar-day {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .calendar-day:hover:not(.disabled) {
+        background: #4a5568;
+    }
+    
+    .calendar-day.other-month {
+        color: #718096;
+        background: #1a202c;
+    }
+}

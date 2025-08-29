@@ -1,0 +1,761 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - Sistema de Gestión de Horas{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/multi-date-calendar.css' %}" rel="stylesheet">
+<style>
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 4px solid #007bff;
+    }
+    
+    .patron-option {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .patron-option:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+    
+    .patron-option.active {
+        border-color: #007bff;
+        background: #e3f2fd;
+    }
+    
+    .preview-container {
+        max-height: 400px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: white;
+    }
+    
+    .fecha-item {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        padding: 0.5rem;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .fecha-item:last-child {
+        border-bottom: none;
+    }
+    
+    .fecha-item.existe {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .fecha-item.nueva {
+        background: #d1edff;
+        color: #0c5460;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-layer-group text-primary me-2"></i>
+                        {{ title }}
+                    </h1>
+                    <p class="text-muted mb-0">{{ subtitle }}</p>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'core:dashboard' %}">Dashboard</a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="{% url 'horas:hora_list' %}">Horas</a>
+                            </li>
+                            <li class="breadcrumb-item active">Registro en Bloque</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'horas:hora_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <form method="post" id="bloqueForm" novalidate>
+        {% csrf_token %}
+        
+        <!-- Errores generales -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Información de la Tarea -->
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información de la Tarea
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.proyecto.id_for_label }}" class="form-label required">
+                                <i class="fas fa-project-diagram me-1"></i>Proyecto
+                            </label>
+                            {{ form.proyecto }}
+                            {% if form.proyecto.errors %}
+                                <div class="invalid-feedback d-block">{{ form.proyecto.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.horas.id_for_label }}" class="form-label required">
+                                <i class="fas fa-clock me-1"></i>Horas por Sesión
+                            </label>
+                            {{ form.horas }}
+                            {% if form.horas.errors %}
+                                <div class="invalid-feedback d-block">{{ form.horas.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">{{ form.horas.help_text }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.tipo_tarea.id_for_label }}" class="form-label required">
+                                <i class="fas fa-tasks me-1"></i>Tipo de Tarea
+                            </label>
+                            {{ form.tipo_tarea }}
+                            {% if form.tipo_tarea.errors %}
+                                <div class="invalid-feedback d-block">{{ form.tipo_tarea.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.descripcion.id_for_label }}" class="form-label required">
+                            <i class="fas fa-align-left me-1"></i>Descripción
+                        </label>
+                        {{ form.descripcion }}
+                        {% if form.descripcion.errors %}
+                            <div class="invalid-feedback d-block">{{ form.descripcion.errors.0 }}</div>
+                        {% endif %}
+                        <div class="form-text">{{ form.descripcion.help_text }}</div>
+                    </div>
+                </div>
+
+                <!-- Patrón de Repetición -->
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        Patrón de Repetición
+                    </h5>
+                    
+                    {% for choice in form.patron_repeticion %}
+                    <div class="patron-option" data-patron="{{ choice.choice_value }}">
+                        <div class="form-check">
+                            {{ choice.tag }}
+                            <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                <strong>{{ choice.choice_label }}</strong>
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            {% if choice.choice_value == 'manual' %}
+                                Seleccione manualmente las fechas específicas
+                            {% elif choice.choice_value == 'semanal' %}
+                                Repite cada semana en el mismo día (ej: todos los viernes)
+                            {% elif choice.choice_value == 'quincenal' %}
+                                Repite cada 15 días desde la fecha de inicio
+                            {% elif choice.choice_value == 'mensual' %}
+                                Repite el mismo día cada mes (ej: día 15 de cada mes)
+                            {% endif %}
+                        </small>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if form.patron_repeticion.errors %}
+                        <div class="invalid-feedback d-block">{{ form.patron_repeticion.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Configuración de Fechas -->
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Configuración de Fechas
+                    </h5>
+                    
+                    <!-- Selección Manual -->
+                    <div id="config-manual" class="config-section" style="display: none;">
+                        {% if periodo_activo %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-calendar-check me-2"></i>
+                            Seleccione fechas del período activo ({{ periodo_activo.fecha_inicio|date:"d/m/Y" }} - {{ periodo_activo.fecha_fin|date:"d/m/Y" }}). 
+                            Los feriados están deshabilitados automáticamente.
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No hay un período activo configurado. Configure un período antes de continuar.
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Widget de Calendario Multi-fecha -->
+                        <div id="multiDateCalendar" class="mb-3"></div>
+                        
+                        <!-- Campo oculto para almacenar las fechas seleccionadas -->
+                        <input type="hidden" name="fechas_manuales" id="id_fechas_manuales" value="">
+                        
+                        <!-- Resumen de fechas seleccionadas -->
+                        <div class="mt-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-list me-2"></i>
+                                        Fechas Seleccionadas
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="selectedDatesList" class="selected-dates-list">
+                                        <p class="text-muted text-center mb-0">
+                                            <i class="fas fa-hand-pointer me-2"></i>
+                                            Seleccione fechas en el calendario para verlas aquí
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Configuración Automática -->
+                    <div id="config-automatico" class="config-section">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fecha_inicio.id_for_label }}" class="form-label">
+                                    <i class="fas fa-play me-1"></i>Fecha de Inicio
+                                </label>
+                                {{ form.fecha_inicio }}
+                                {% if form.fecha_inicio.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.fecha_inicio.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fecha_fin.id_for_label }}" class="form-label">
+                                    <i class="fas fa-stop me-1"></i>Fecha de Fin
+                                </label>
+                                {{ form.fecha_fin }}
+                                {% if form.fecha_fin.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.fecha_fin.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Configuración Semanal -->
+                        <div id="config-semanal" class="config-subsection">
+                            <label for="{{ form.dia_semana.id_for_label }}" class="form-label">
+                                <i class="fas fa-calendar-week me-1"></i>Día de la Semana
+                            </label>
+                            {{ form.dia_semana }}
+                            {% if form.dia_semana.errors %}
+                                <div class="invalid-feedback d-block">{{ form.dia_semana.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Configuración Mensual -->
+                        <div id="config-mensual" class="config-subsection">
+                            <label for="{{ form.dia_mes.id_for_label }}" class="form-label">
+                                <i class="fas fa-calendar-day me-1"></i>Día del Mes
+                            </label>
+                            {{ form.dia_mes }}
+                            {% if form.dia_mes.errors %}
+                                <div class="invalid-feedback d-block">{{ form.dia_mes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Opciones Adicionales -->
+                <div class="form-section">
+                    <h5 class="mb-3">
+                        <i class="fas fa-cog me-2"></i>
+                        Opciones Adicionales
+                    </h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.omitir_feriados }}
+                                <label class="form-check-label" for="{{ form.omitir_feriados.id_for_label }}">
+                                    {{ form.omitir_feriados.label }}
+                                </label>
+                                <div class="form-text">{{ form.omitir_feriados.help_text }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.omitir_fines_semana }}
+                                <label class="form-check-label" for="{{ form.omitir_fines_semana.id_for_label }}">
+                                    {{ form.omitir_fines_semana.label }}
+                                </label>
+                                <div class="form-text">{{ form.omitir_fines_semana.help_text }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'horas:hora_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </a>
+                    <div>
+                        <button type="button" class="btn btn-info me-2" id="previewBtn">
+                            <i class="fas fa-eye me-1"></i>Previsualizar
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Crear Registros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Lateral -->
+            <div class="col-lg-4">
+                <!-- Previsualización -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-eye me-2"></i>
+                            Previsualización
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="preview-content">
+                            <p class="text-muted text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Complete el formulario y haga clic en "Previsualizar" para ver las fechas que se generarán.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ayuda -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-question-circle me-2"></i>
+                            Ayuda
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6><i class="fas fa-lightbulb text-warning me-2"></i>Ejemplos de Uso</h6>
+                            <ul class="list-unstyled small">
+                                <li>• <strong>Reunión semanal:</strong> Todos los viernes</li>
+                                <li>• <strong>Revisión mensual:</strong> Día 15 de cada mes</li>
+                                <li>• <strong>Capacitación:</strong> Fechas específicas</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6><i class="fas fa-info-circle text-info me-2"></i>Consejos</h6>
+                            <ul class="list-unstyled small">
+                                <li>• Use descripciones claras</li>
+                                <li>• Previsualice antes de crear</li>
+                                <li>• Los duplicados se omiten automáticamente</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/multi-date-calendar.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Aplicar clases CSS a los campos del formulario
+    const fields = {
+        'proyecto': 'form-select',
+        'horas': 'form-control',
+        'tipo_tarea': 'form-select',
+        'descripcion': 'form-control',
+        'fecha_inicio': 'form-control',
+        'fecha_fin': 'form-control',
+        'dia_semana': 'form-select',
+        'dia_mes': 'form-control',
+        'omitir_feriados': 'form-check-input',
+        'omitir_fines_semana': 'form-check-input'
+    };
+    
+    Object.keys(fields).forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.className = fields[fieldName];
+        }
+    });
+    
+    // Configurar atributos específicos
+    const horasField = document.querySelector('[name="horas"]');
+    if (horasField) {
+        horasField.step = '0.25';
+        horasField.min = '0.25';
+        horasField.max = '24';
+        horasField.placeholder = 'Ej: 0.5, 1.0, 2.0';
+    }
+    
+    const descripcionField = document.querySelector('[name="descripcion"]');
+    if (descripcionField) {
+        descripcionField.rows = 3;
+        descripcionField.placeholder = 'Ej: Reunión semanal de seguimiento del proyecto...';
+    }
+    
+    const fechaInicioField = document.querySelector('[name="fecha_inicio"]');
+    const fechaFinField = document.querySelector('[name="fecha_fin"]');
+    if (fechaInicioField) fechaInicioField.type = 'date';
+    if (fechaFinField) fechaFinField.type = 'date';
+    
+    // Manejar cambios en el patrón de repetición
+    const patronRadios = document.querySelectorAll('input[name="patron_repeticion"]');
+    
+    function updatePatronConfig() {
+        const selectedPatron = document.querySelector('input[name="patron_repeticion"]:checked')?.value;
+        
+        // Actualizar estilos de las opciones
+        document.querySelectorAll('.patron-option').forEach(option => {
+            option.classList.remove('active');
+        });
+        
+        if (selectedPatron) {
+            const activeOption = document.querySelector(`[data-patron="${selectedPatron}"]`);
+            if (activeOption) {
+                activeOption.classList.add('active');
+            }
+        }
+        
+        // Mostrar/ocultar secciones de configuración
+        document.getElementById('config-manual').style.display = selectedPatron === 'manual' ? 'block' : 'none';
+        document.getElementById('config-automatico').style.display = selectedPatron !== 'manual' ? 'block' : 'none';
+        
+        // Mostrar/ocultar subsecciones
+        document.getElementById('config-semanal').style.display = selectedPatron === 'semanal' ? 'block' : 'none';
+        document.getElementById('config-mensual').style.display = selectedPatron === 'mensual' ? 'block' : 'none';
+    }
+    
+    patronRadios.forEach(radio => {
+        radio.addEventListener('change', updatePatronConfig);
+    });
+    
+    // Inicializar configuración
+    updatePatronConfig();
+    
+    // Manejar previsualización
+    document.getElementById('previewBtn').addEventListener('click', function() {
+        const formData = new FormData(document.getElementById('bloqueForm'));
+        
+        fetch('{% url "horas:hora_bloque_preview" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const previewContent = document.getElementById('preview-content');
+            
+            if (data.success) {
+                let html = `
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><strong>Total:</strong> ${data.total}</span>
+                            <span><strong>Nuevos:</strong> ${data.nuevos}</span>
+                        </div>
+                        ${data.existentes > 0 ? `<small class="text-warning">Existentes: ${data.existentes}</small>` : ''}
+                    </div>
+                    <div class="preview-container">
+                `;
+                
+                data.fechas.forEach(fecha => {
+                    const clase = fecha.existe ? 'existe' : 'nueva';
+                    const icono = fecha.existe ? 'fas fa-exclamation-triangle' : 'fas fa-plus';
+                    
+                    html += `
+                        <div class="fecha-item ${clase}">
+                            <div>
+                                <i class="${icono} me-2"></i>
+                                <strong>${fecha.fecha_display}</strong>
+                                <small class="text-muted d-block">${fecha.dia_semana}</small>
+                            </div>
+                            ${fecha.existe ? '<small>Ya existe</small>' : '<small>Nuevo</small>'}
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                previewContent.innerHTML = html;
+            } else {
+                previewContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error: ${data.error || 'No se pudo generar la previsualización'}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('preview-content').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Error de conexión
+                </div>
+            `;
+        });
+    });
+    
+    // ============================================================================
+    // WIDGET DE CALENDARIO MULTI-FECHA
+    // ============================================================================
+    
+    // Inicializar calendario multi-fecha cuando se selecciona patrón manual
+    let multiDateCalendar = null;
+    
+    function initMultiDateCalendar() {
+        if (multiDateCalendar) {
+            console.log('Calendario ya inicializado');
+            return; // Ya inicializado
+        }
+        
+        console.log('Inicializando calendario multi-fecha...');
+        
+        // Verificar que el contenedor existe
+        const container = document.getElementById('multiDateCalendar');
+        if (!container) {
+            console.error('Contenedor multiDateCalendar no encontrado');
+            return;
+        }
+        
+        // Verificar que la clase MultiDateCalendar está disponible
+        if (typeof MultiDateCalendar === 'undefined') {
+            console.error('Clase MultiDateCalendar no está disponible');
+            return;
+        }
+        
+        // Obtener feriados del usuario (si están disponibles)
+        const holidays = {{ feriados|safe }};
+        
+        // Obtener período activo
+        const periodoActivo = {
+            {% if periodo_activo %}
+            fechaInicio: '{{ periodo_activo.fecha_inicio|date:"Y-m-d" }}',
+            fechaFin: '{{ periodo_activo.fecha_fin|date:"Y-m-d" }}'
+            {% else %}
+            fechaInicio: null,
+            fechaFin: null
+            {% endif %}
+        };
+        
+        try {
+            multiDateCalendar = new MultiDateCalendar('multiDateCalendar', {
+                minDate: periodoActivo.fechaInicio ? new Date(periodoActivo.fechaInicio) : new Date(),
+                maxDate: periodoActivo.fechaFin ? new Date(periodoActivo.fechaFin) : new Date(new Date().getFullYear() + 2, 11, 31),
+                disableWeekends: false, // Permitir fines de semana por defecto
+                holidays: holidays,
+                onChange: function(selectedDates) {
+                    console.log('Fechas seleccionadas:', selectedDates);
+                    
+                    // Actualizar campo oculto
+                    const fechasManualesField = document.querySelector('[name="fechas_manuales"]');
+                    if (fechasManualesField) {
+                        fechasManualesField.value = selectedDates.join(',');
+                        console.log('Campo actualizado:', fechasManualesField.value);
+                    }
+                    
+                    // Actualizar lista visual
+                    updateSelectedDatesList(selectedDates);
+                }
+            });
+            
+            console.log('Calendario inicializado exitosamente');
+            
+            // Cargar fechas existentes si las hay
+            const fechasManualesField = document.querySelector('[name="fechas_manuales"]');
+            if (fechasManualesField && fechasManualesField.value) {
+                const existingDates = fechasManualesField.value.split(',').filter(d => d.trim());
+                multiDateCalendar.setSelectedDates(existingDates);
+                console.log('Fechas existentes cargadas:', existingDates);
+            }
+            
+        } catch (error) {
+            console.error('Error al inicializar calendario:', error);
+        }
+    }
+    
+    function updateSelectedDatesList(selectedDates) {
+        const container = document.getElementById('selectedDatesList');
+        
+        if (selectedDates.length === 0) {
+            container.innerHTML = `
+                <p class="text-muted text-center mb-0">
+                    <i class="fas fa-hand-pointer me-2"></i>
+                    Seleccione fechas en el calendario para verlas aquí
+                </p>
+            `;
+            return;
+        }
+        
+        // Ordenar fechas
+        const sortedDates = selectedDates.sort();
+        
+        let html = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>${sortedDates.length} fecha${sortedDates.length !== 1 ? 's' : ''} seleccionada${sortedDates.length !== 1 ? 's' : ''}</strong>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearAllSelectedDates()">
+                    <i class="fas fa-trash me-1"></i>Limpiar
+                </button>
+            </div>
+            <div class="selected-dates-grid">
+        `;
+        
+        sortedDates.forEach((dateStr, index) => {
+            const date = new Date(dateStr + 'T00:00:00');
+            const formattedDate = date.toLocaleDateString('es-ES', {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+            
+            html += `
+                <div class="selected-date-item">
+                    <span class="date-text">${formattedDate}</span>
+                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                            onclick="removeSelectedDate('${dateStr}')" 
+                            title="Eliminar fecha">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+    }
+    
+    function clearAllSelectedDates() {
+        if (multiDateCalendar) {
+            multiDateCalendar.clearAllDates();
+        }
+    }
+    
+    function removeSelectedDate(dateStr) {
+        if (multiDateCalendar) {
+            multiDateCalendar.removeDate(dateStr);
+        }
+    }
+    
+    // Modificar la función updatePatronConfig para inicializar el calendario
+    const originalUpdatePatronConfig = updatePatronConfig;
+    updatePatronConfig = function() {
+        originalUpdatePatronConfig();
+        
+        const selectedPatron = document.querySelector('input[name="patron_repeticion"]:checked')?.value;
+        
+        if (selectedPatron === 'manual') {
+            // Mostrar sección manual
+            document.getElementById('config-manual').style.display = 'block';
+            
+            // Inicializar calendario inmediatamente
+            setTimeout(() => {
+                initMultiDateCalendar();
+            }, 100);
+        } else {
+            // Ocultar sección manual
+            document.getElementById('config-manual').style.display = 'none';
+        }
+    };
+    
+    // Inicializar configuración al cargar la página
+    updatePatronConfig();
+});
+
+// Funciones globales para los botones
+function clearAllSelectedDates() {
+    if (window.multiDateCalendar) {
+        window.multiDateCalendar.clearAllDates();
+    }
+}
+
+function removeSelectedDate(dateStr) {
+    if (window.multiDateCalendar) {
+        window.multiDateCalendar.removeDate(dateStr);
+    }
+}
+</script>
+
+<style>
+/* Estilos adicionales para la lista de fechas seleccionadas */
+.selected-dates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.selected-date-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.date-text {
+    font-weight: 500;
+    color: #1565c0;
+}
+
+.selected-date-item .btn {
+    padding: 0.125rem 0.25rem;
+    font-size: 0.75rem;
+}
+
+@media (max-width: 768px) {
+    .selected-dates-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

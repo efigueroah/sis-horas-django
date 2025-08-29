@@ -1,0 +1,344 @@
+/* Estilos personalizados para Sistema de Gestión de Horas */
+
+:root {
+    --primary-color: #007bff;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+}
+
+/* Layout general */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 10px 10px 0 0 !important;
+    font-weight: 600;
+}
+
+/* Botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    border: none;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+    border: none;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+}
+
+/* Formularios */
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Slider personalizado */
+.form-range {
+    height: 6px;
+}
+
+.form-range::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.form-range::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Calendario */
+.calendar-day {
+    height: 60px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.calendar-day:hover {
+    background-color: #e9ecef !important;
+    transform: scale(1.05);
+}
+
+.calendar-day.weekend {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.calendar-day.holiday {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.calendar-day.complete {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.calendar-day.incomplete {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.calendar-day.no-hours {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.calendar-day::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    opacity: 0.6;
+}
+
+/* Estadísticas */
+.card-stat {
+    border-left: 4px solid;
+    transition: transform 0.2s;
+}
+
+.card-stat:hover {
+    transform: translateY(-2px);
+}
+
+.card-stat.primary { 
+    border-left-color: var(--primary-color); 
+}
+
+.card-stat.success { 
+    border-left-color: var(--success-color); 
+}
+
+.card-stat.warning { 
+    border-left-color: var(--warning-color); 
+}
+
+.card-stat.info { 
+    border-left-color: var(--info-color); 
+}
+
+.card-stat.danger { 
+    border-left-color: var(--danger-color); 
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+}
+
+/* Tablas */
+.table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--light-color);
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Alertas */
+.alert {
+    border: none;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: var(--success-color);
+}
+
+.alert-warning {
+    border-left-color: var(--warning-color);
+}
+
+.alert-danger {
+    border-left-color: var(--danger-color);
+}
+
+.alert-info {
+    border-left-color: var(--info-color);
+}
+
+/* Modales */
+.modal-content {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    border-radius: 0 0 10px 10px;
+}
+
+/* Navegación */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link {
+    transition: color 0.2s;
+}
+
+.nav-link:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Utilidades */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-sm {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.shadow {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.shadow-lg {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card-stat {
+        margin-bottom: 1rem;
+    }
+    
+    .calendar-day {
+        height: 40px;
+        font-size: 0.875rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1.25rem;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1a1a1a;
+        --text-color: #ffffff;
+        --card-bg: #2d2d2d;
+    }
+    
+    body.dark-mode {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+    
+    .dark-mode .card {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+    }
+    
+    .dark-mode .navbar {
+        background-color: var(--card-bg) !important;
+    }
+}
